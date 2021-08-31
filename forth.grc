@@ -372,37 +372,44 @@ blocks:
       import tensorflow as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras\
       \ import Model\nfrom tensorflow.keras.layers import Layer, Dense, Softmax\n\
       from tensorflow.keras.layers import Dense\n\n# Number of messages - Dict from\
-      \ MAC\n#M = 8\nSEED = 1\n\nclass blk(gr.sync_block):  # other base classes are\
-      \ basic_block, decim_block, interp_block\n\t\"\"\"Embedded Python Block example\
-      \ - a simple multiply const\"\"\"\n\n\tdef __init__(self, example_param=1.0,\
-      \ num_GPU=0.0, active_threshold= 0.9, slot_time = 1, channels =[0,0,0,0,0,0,0]):\
-      \  # only default arguments here\n\t\t\"\"\"arguments to this function show\
-      \ up as parameters in GRC\"\"\"\n\t\tgr.sync_block.__init__(\n\t\t\tself,\n\t\
-      \t\tname='Select channel',   # will show up in GRC\n\t\t\tin_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
+      \ MAC\n#M = 8\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n\t\"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n\tdef __init__(self,number_of_channels=7,seed = 0,\
+      \ example_param=1.0, num_GPU=0.0, active_threshold= 0.9, slot_time = 1, window_size\
+      \ = 5):  # only default arguments here\n\t\t\"\"\"arguments to this function\
+      \ show up as parameters in GRC\"\"\"\n\t\tgr.sync_block.__init__(\n\t\t\tself,\n\
+      \t\t\tname='Select channel',   # will show up in GRC\n\t\t\tin_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
       \t\t\tout_sig=[np.int16]\n\t\t)\n\t\tprint('Tensorflow version: ', tf.__version__)\n\
       \n\t\tgpus = tf.config.experimental.list_physical_devices(\"GPU\")\n\t\tprint('Number\
       \ of GPUs available :', len(gpus))\n\t\t\n\t\tif num_GPU < len(gpus):\n\t\t\
       \    tf.config.experimental.set_visible_devices(gpus[num_GPU], 'GPU')\n\t\t\
       \    tf.config.experimental.set_memory_growth(gpus[num_GPU], True)\n\t\t   \
       \ print('Only GPU number', num_GPU, 'used')\n\n\t\tdq_env = DQEnv(random=False)\n\
-      \t\tself.active_threshold = active_threshold\n\t\t\n\t\t#Get initial state\n\
-      \t\tdq_env.initialize()\n\t\tprint(dq_env.get_init_state())\n\t\ttf.random.set_seed(SEED)\n\
-      \t\t#agent_dq = DQAgent(nb_channels=7, learning_rate=0.01, gamma=1)\n\t\tself.channels\
-      \ = channels\n\t\tself.slot_time = slot_time\n\t\tself.last_datetime = datetime.now()\n\
-      \t\tself.init_DQN_flag = 0\n\t\t\n\t\t# init channels states to 0\n\t\tfor i\
-      \ in range(0,7): # adjust channel size\n\t\t\tself.channels[i] = 0\n\t\t\n\t\
-      def work(self, input_items, output_items):\n\t\t\"\"\"example: multiply with\
-      \ constant\"\"\"\n\t\t#sample channels\n\t\tfor i in range(0,np.size(input_items,0)):\n\
-      \t\t\tif datetime.now() - self.last_datetime > timedelta(days=0, seconds=self.slot_time,\
-      \ microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):\n\t\t\t\tself.last_datetime\
-      \ = datetime.now()\n\t\t\t\tself.channels[i] = 0\t\n\t\t\t\tprint(self.channels)\n\
-      \t\t\tif (np.mean(input_items[i][:])>self.active_threshold):\n\t\t\t\tself.channels[i]\
-      \ = 1\n\t\t\toutput_items[0][:] = input_items[i]\n\t\treturn len(output_items[0])\n\
-      \nclass Normalization(Layer):\n\tdef __init__(self, **kwargs):\n\t\tsuper(Normalization,\
-      \ self).__init__(**kwargs)\n\n\tdef call(self, symbols):        \n\t\t# Normalize\
-      \ power per symbol to 1\n\t\ten_moy = tf.sqrt(2 * tf.reduce_mean(tf.square(symbols)))\n\
-      \t\tsymbols_norm = tf.divide(symbols, en_moy)\n\t\t\n\t\treturn symbols_norm\n\
-      class R2C(Layer):\n\n\tdef __init__(self, **kwargs):\n\t\tsuper(R2C, self).__init__(**kwargs)\n\
+      \t\tself.active_threshold = active_threshold\n\t\tself.number_of_channels =\
+      \ number_of_channels\n\t\t#Get initial state\n\t\tdq_env.initialize()\n\t\t\
+      print(dq_env.get_init_state())\n\n\t\t#agent_dq = DQAgent(nb_channels=7, learning_rate=0.01,\
+      \ gamma=1)\n\t\t\n\t\tself.channels = np.zeros(self.number_of_channels)\n\t\t\
+      self.slot_time = slot_time\n\t\tself.last_datetime = datetime.now()\n\t\tself.init_DQN_flag\
+      \ = 0\n\t\tself.window_size = window_size\n\t\tself.grid = np.zeros((self.window_size,\
+      \ self.number_of_channels))\n\t\tself.seed = seed\n\t\t\n\t\ttf.random.set_seed(seed)\n\
+      \t\t\n\t\t# init channels states to 0\n\t\tfor i in range(0,self.number_of_channels):\
+      \ \n\t\t\tself.channels[i] = 0\n\t\t\n\tdef work(self, input_items, output_items):\n\
+      \t\t\"\"\"example: multiply with constant\"\"\"\n\t\t#sample channels\n\t\t\
+      for i in range(0,np.size(input_items,0)):\n\t\t\tif datetime.now() - self.last_datetime\
+      \ > timedelta(days=0, seconds=self.slot_time, microseconds=0, milliseconds=0,\
+      \ minutes=0, hours=0, weeks=0):\n\t\t\t\tself.grid = self.make_grid(self.grid,self.channels)\n\
+      \t\t\t\tself.last_datetime = datetime.now()\n\t\t\t\tself.channels = np.zeros(self.number_of_channels)\n\
+      \t\t\t\tprint(self.grid)\n\t\t\tif (np.mean(input_items[i][:])>self.active_threshold):\n\
+      \t\t\t\tself.channels[i] = 1\n\t\t\toutput_items[0][:] = input_items[i]\n\t\t\
+      return len(output_items[0])\n\n\tdef make_grid(self,grid,channels):\n\t\tgrid\
+      \ = np.append(grid, channels).reshape(self.window_size+1,7)\n\t\tgrid = np.delete(grid,\
+      \ 0, 0)\n\t\tgrid = grid.reshape(self.window_size,self.number_of_channels)\n\
+      \t\treturn grid.astype(np.float32)\n\t\t\nclass Normalization(Layer):\n\tdef\
+      \ __init__(self, **kwargs):\n\t\tsuper(Normalization, self).__init__(**kwargs)\n\
+      \n\tdef call(self, symbols):        \n\t\t# Normalize power per symbol to 1\n\
+      \t\ten_moy = tf.sqrt(2 * tf.reduce_mean(tf.square(symbols)))\n\t\tsymbols_norm\
+      \ = tf.divide(symbols, en_moy)\n\t\t\n\t\treturn symbols_norm\nclass R2C(Layer):\n\
+      \n\tdef __init__(self, **kwargs):\n\t\tsuper(R2C, self).__init__(**kwargs)\n\
       \n\tdef call(self, x):\n\t\t# Converts 2Nc real numbers into Nc complex numbers\n\
       \t\tx_cplx = tf.complex(x[:, :1], x[:, 1:])            \n\t\treturn x_cplx\n\
       \nclass C2R(Layer):\n\n\tdef __init__(self, **kwargs):\n\t\tsuper(C2R, self).__init__(**kwargs)\n\
@@ -499,24 +506,27 @@ blocks:
     active_threshold: '0.3'
     affinity: ''
     alias: ''
-    channels: '[0,0,0,0,0,0,0]'
     comment: ''
     example_param: '1.0'
     maxoutbuf: '0'
     minoutbuf: '0'
     num_GPU: '0.0'
+    number_of_channels: '7'
+    seed: '0'
     slot_time: '1'
+    window_size: '5'
   states:
-    _io_cache: ('Select channel', 'blk', [('example_param', '1.0'), ('num_GPU', '0.0'),
-      ('active_threshold', '0.9'), ('slot_time', '1'), ('channels', '[0, 0, 0, 0,
-      0, 0, 0]')], [('0', 'complex', 1), ('1', 'complex', 1), ('2', 'complex', 1),
-      ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1), ('6', 'complex',
-      1)], [('0', 'short', 1)], 'Embedded Python Block example - a simple multiply
-      const', ['active_threshold', 'channels', 'slot_time'])
+    _io_cache: ('Select channel', 'blk', [('number_of_channels', '7'), ('seed', '0'),
+      ('example_param', '1.0'), ('num_GPU', '0.0'), ('active_threshold', '0.9'), ('slot_time',
+      '1'), ('window_size', '5')], [('0', 'complex', 1), ('1', 'complex', 1), ('2',
+      'complex', 1), ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1),
+      ('6', 'complex', 1)], [('0', 'short', 1)], 'Embedded Python Block example -
+      a simple multiply const', ['active_threshold', 'number_of_channels', 'seed',
+      'slot_time', 'window_size'])
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1429, 325]
+    coordinate: [1438, 296]
     rotation: 0
     state: true
 - name: epy_block_1
@@ -530,29 +540,29 @@ blocks:
       \ timedelta\nfrom timeslot import Timeslot\nfrom gnuradio import gr\n\nclass\
       \ blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block\n\
       \    \"\"\"Embedded Python Block example - a simple multiply const\"\"\"\n \
-      \   def __init__(self, example_param=1.0, poisson_lambda=5.0, interval = 32000,\
-      \ channels = [0,0,0,0,0,0,0]):  #change to numpy array size of inputs. only\
-      \ default arguments here\n        \"\"\"arguments to this function show up as\
-      \ parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n            self,\n\
-      \            name='Channels emulator',   # will show up in GRC\n           \
-      \ in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
+      \   def __init__(self, example_param=1.0, poisson_lambda=5.0, interval = 32000):\
+      \  #change to numpy array size of inputs. only default arguments here\n    \
+      \    \"\"\"arguments to this function show up as parameters in GRC\"\"\"\n \
+      \       gr.sync_block.__init__(\n            self,\n            name='Channels\
+      \ emulator',   # will show up in GRC\n            in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
       \            out_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64]\n\
       \        )\n        # if an attribute with the same name as a parameter is found,\n\
       \        # a callback is registered (properties work, too).\n        self.example_param\
       \ = example_param\n        self.poisson_lambda = poisson_lambda\n        stop_run_continuously\
       \ = self.run_continuously() # enable therding for scheduler\n        self.interval\
-      \ = interval\n        self.channels = channels\n        for j in range(0,len(self.channels)):\
-      \ #cahnge to synchronus\n        \tself.channels[j] = datetime.now()\n\t\n \
-      \   def work(self, input_items, output_items):\n        \"\"\"example: multiply\
-      \ with constant\"\"\"\n        for i in range(0,np.size(input_items,0)):\n \
-      \       \tactive = np.random.poisson(self.poisson_lambda, 1) > 5.0\n       \
-      \ \tif datetime.now() - self.channels[i] > timedelta(days=0, seconds=1, microseconds=self.interval,\
-      \ milliseconds=0, minutes=0, hours=0, weeks=0):\n        \t\tself.turnoff(i,input_items,\
-      \ output_items)\n        \t\tif active == True:\n        \t\t\tself.channels[i]\
-      \ = datetime.now()\n        \telse:\n        \t\tself.turnon(i,input_items,\
-      \ output_items)\n        return len(output_items[0])\n\t\n    def turnon(self,i,\
-      \ input_items, output_items):\n    \toutput_items[i][:] = input_items[i] * self.example_param\n\
-      \    \t\n    def turnoff(self,i, input_items, output_items):\n    \toutput_items[i][:]\
+      \ = interval\n        self.channels = [0,0,0,0,0,0,0]#cahnge to size of inputs\n\
+      \        for j in range(0,len(self.channels)): #cahnge to synchronus\n     \
+      \   \tself.channels[j] = datetime.now()\n\t\n    def work(self, input_items,\
+      \ output_items):\n        \"\"\"example: multiply with constant\"\"\"\n    \
+      \    for i in range(0,np.size(input_items,0)):\n        \tactive = np.random.poisson(self.poisson_lambda,\
+      \ 1) > 5.0\n        \tif datetime.now() - self.channels[i] > timedelta(days=0,\
+      \ seconds=1, microseconds=self.interval, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n        \t\tself.turnoff(i,input_items, output_items)\n       \
+      \ \t\tif active == True:\n        \t\t\tself.channels[i] = datetime.now()\n\
+      \        \telse:\n        \t\tself.turnon(i,input_items, output_items)\n   \
+      \     return len(output_items[0])\n\t\n    def turnon(self,i, input_items, output_items):\n\
+      \    \toutput_items[i][:] = input_items[i] * self.example_param\n    \t\n  \
+      \  def turnoff(self,i, input_items, output_items):\n    \toutput_items[i][:]\
       \ = input_items[i] * 0\n    \t\n    def run_continuously(interval=1):\n    \t\
       cease_continuous_run = threading.Event()\n\n    \tclass ScheduleThread(threading.Thread):\n\
       \    \t    def run(cls):\n\t            while not cease_continuous_run.is_set():\n\
@@ -561,7 +571,6 @@ blocks:
       \    \treturn cease_continuous_run\n"
     affinity: ''
     alias: ''
-    channels: '[0, 0, 0, 0, 0, 0, 0]'
     comment: ''
     example_param: '1.0'
     interval: samp_rate
@@ -570,12 +579,12 @@ blocks:
     poisson_lambda: '1.0'
   states:
     _io_cache: ('Channels emulator', 'blk', [('example_param', '1.0'), ('poisson_lambda',
-      '5.0'), ('interval', '32000'), ('channels', '[0, 0, 0, 0, 0, 0, 0]')], [('0',
-      'complex', 1), ('1', 'complex', 1), ('2', 'complex', 1), ('3', 'complex', 1),
-      ('4', 'complex', 1), ('5', 'complex', 1), ('6', 'complex', 1)], [('0', 'complex',
-      1), ('1', 'complex', 1), ('2', 'complex', 1), ('3', 'complex', 1), ('4', 'complex',
-      1), ('5', 'complex', 1), ('6', 'complex', 1)], 'Embedded Python Block example
-      - a simple multiply const', ['channels', 'example_param', 'interval', 'poisson_lambda'])
+      '5.0'), ('interval', '32000')], [('0', 'complex', 1), ('1', 'complex', 1), ('2',
+      'complex', 1), ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1),
+      ('6', 'complex', 1)], [('0', 'complex', 1), ('1', 'complex', 1), ('2', 'complex',
+      1), ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1), ('6', 'complex',
+      1)], 'Embedded Python Block example - a simple multiply const', ['example_param',
+      'interval', 'poisson_lambda'])
     bus_sink: false
     bus_source: false
     bus_structure: null
@@ -722,7 +731,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1676, 402]
+    coordinate: [1723, 380]
     rotation: 0
     state: true
 - name: qtgui_waterfall_sink_x_0
