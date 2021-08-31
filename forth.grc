@@ -1,0 +1,830 @@
+options:
+  parameters:
+    author: lab512
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: forth
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Not titled yet
+    window_size: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '32000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [9, 102]
+    rotation: 0
+    state: enabled
+- name: analog_sig_source_x_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '1000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [204, 9]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_0_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '2000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [206, 136]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_0_0_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '3000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [206, 263]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_0_0_0_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '4000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [206, 389]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_0_0_0_0_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '5000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [205, 513]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_0_0_0_0_0_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '6000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [205, 640]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_0_0_0_0_0_0_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '7000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [206, 765]
+    rotation: 0
+    state: true
+- name: blocks_add_xx_0_0_0_0_0_0_0_0
+  id: blocks_add_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '7'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1306, 22]
+    rotation: 90
+    state: true
+- name: channels_channel_model_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.001'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.1'
+    seed: '0'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [768, 15]
+    rotation: 0
+    state: true
+- name: channels_channel_model_0_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.001'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.1'
+    seed: '1'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [768, 144]
+    rotation: 0
+    state: true
+- name: channels_channel_model_0_0_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.001'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.1'
+    seed: '2'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [767, 273]
+    rotation: 0
+    state: true
+- name: channels_channel_model_0_0_0_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.001'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.1'
+    seed: '3'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [768, 406]
+    rotation: 0
+    state: true
+- name: channels_channel_model_0_0_0_0_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.001'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.1'
+    seed: '4'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [769, 536]
+    rotation: 0
+    state: true
+- name: channels_channel_model_0_0_0_0_0_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.001'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.1'
+    seed: '5'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [771, 669]
+    rotation: 0
+    state: true
+- name: channels_channel_model_0_0_0_0_0_0_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.001'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.1'
+    seed: '6'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [773, 798]
+    rotation: 0
+    state: true
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "import os\nimport copy\nimport sys      \nimport time\nimport schedule\n\
+      import threading\nfrom datetime import datetime, timedelta\nfrom timeslot import\
+      \ Timeslot  \nimport numpy as np\nimport matplotlib.pyplot as plt\nimport torch\n\
+      import tensorflow as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras\
+      \ import Model\nfrom tensorflow.keras.layers import Layer, Dense, Softmax\n\
+      from tensorflow.keras.layers import Dense\n\n# Number of messages - Dict from\
+      \ MAC\n#M = 8\nSEED = 1\n\nclass blk(gr.sync_block):  # other base classes are\
+      \ basic_block, decim_block, interp_block\n\t\"\"\"Embedded Python Block example\
+      \ - a simple multiply const\"\"\"\n\n\tdef __init__(self, example_param=1.0,\
+      \ num_GPU=0.0, active_threshold= 0.9, slot_time = 1, channels =[0,0,0,0,0,0,0]):\
+      \  # only default arguments here\n\t\t\"\"\"arguments to this function show\
+      \ up as parameters in GRC\"\"\"\n\t\tgr.sync_block.__init__(\n\t\t\tself,\n\t\
+      \t\tname='Select channel',   # will show up in GRC\n\t\t\tin_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
+      \t\t\tout_sig=[np.int16]\n\t\t)\n\t\tprint('Tensorflow version: ', tf.__version__)\n\
+      \n\t\tgpus = tf.config.experimental.list_physical_devices(\"GPU\")\n\t\tprint('Number\
+      \ of GPUs available :', len(gpus))\n\t\t\n\t\tif num_GPU < len(gpus):\n\t\t\
+      \    tf.config.experimental.set_visible_devices(gpus[num_GPU], 'GPU')\n\t\t\
+      \    tf.config.experimental.set_memory_growth(gpus[num_GPU], True)\n\t\t   \
+      \ print('Only GPU number', num_GPU, 'used')\n\n\t\tdq_env = DQEnv(random=False)\n\
+      \t\tself.active_threshold = active_threshold\n\t\t\n\t\t#Get initial state\n\
+      \t\tdq_env.initialize()\n\t\tprint(dq_env.get_init_state())\n\t\ttf.random.set_seed(SEED)\n\
+      \t\t#agent_dq = DQAgent(nb_channels=7, learning_rate=0.01, gamma=1)\n\t\tself.channels\
+      \ = channels\n\t\tself.slot_time = slot_time\n\t\tself.last_datetime = datetime.now()\n\
+      \t\tself.init_DQN_flag = 0\n\t\t\n\t\t# init channels states to 0\n\t\tfor i\
+      \ in range(0,7): # adjust channel size\n\t\t\tself.channels[i] = 0\n\t\t\n\t\
+      def work(self, input_items, output_items):\n\t\t\"\"\"example: multiply with\
+      \ constant\"\"\"\n\t\t#sample channels\n\t\tfor i in range(0,np.size(input_items,0)):\n\
+      \t\t\tif datetime.now() - self.last_datetime > timedelta(days=0, seconds=self.slot_time,\
+      \ microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):\n\t\t\t\tself.last_datetime\
+      \ = datetime.now()\n\t\t\t\tself.channels[i] = 0\t\n\t\t\t\tprint(self.channels)\n\
+      \t\t\tif (np.mean(input_items[i][:])>self.active_threshold):\n\t\t\t\tself.channels[i]\
+      \ = 1\n\t\t\toutput_items[0][:] = input_items[i]\n\t\treturn len(output_items[0])\n\
+      \nclass Normalization(Layer):\n\tdef __init__(self, **kwargs):\n\t\tsuper(Normalization,\
+      \ self).__init__(**kwargs)\n\n\tdef call(self, symbols):        \n\t\t# Normalize\
+      \ power per symbol to 1\n\t\ten_moy = tf.sqrt(2 * tf.reduce_mean(tf.square(symbols)))\n\
+      \t\tsymbols_norm = tf.divide(symbols, en_moy)\n\t\t\n\t\treturn symbols_norm\n\
+      class R2C(Layer):\n\n\tdef __init__(self, **kwargs):\n\t\tsuper(R2C, self).__init__(**kwargs)\n\
+      \n\tdef call(self, x):\n\t\t# Converts 2Nc real numbers into Nc complex numbers\n\
+      \t\tx_cplx = tf.complex(x[:, :1], x[:, 1:])            \n\t\treturn x_cplx\n\
+      \nclass C2R(Layer):\n\n\tdef __init__(self, **kwargs):\n\t\tsuper(C2R, self).__init__(**kwargs)\n\
+      \n\tdef call(self, y):\n\t\t#converts Nc complex numbers into 2Nc real numbers\n\
+      \t\ty_real = tf.concat([tf.math.real(y), tf.math.imag(y)], axis=1)\n\t\treturn\
+      \ y_real\n\nclass OneHot(Layer):\n\n\tdef __init__(self, M, **kwargs):\n\t\t\
+      super(OneHot, self).__init__(**kwargs)\n\t\tself.M = M\n\n\tdef call(self, msg):\n\
+      \n\t\tone_hot_msg = tf.one_hot(msg, depth = M)\n\n\t\treturn one_hot_msg\n\n\
+      class OneHot(Layer):\n\n\tdef __init__(self, M, **kwargs):\n\t\tsuper(OneHot,\
+      \ self).__init__(**kwargs)\n\t\tself.M = M\n\n\tdef call(self, msg):\n\n\t\t\
+      one_hot_msg = tf.one_hot(msg, depth = M)\n\n\t\treturn one_hot_msg\n\nclass\
+      \ Channel(Layer):\n\n\tdef __init__(self, **kwargs):\n\t\tsuper(Channel, self).__init__(**kwargs)\n\
+      \            \n\tdef call(self, x, snr):\n\t\t# Adds random Gaussian noise to\
+      \ the input\n\t\tnoise_stddev = tf.sqrt( 2 / tf.pow(10., snr/10.0))\n\t\tnoise_r\
+      \ = tf.random.normal(shape = tf.shape(x), stddev = 1) * noise_stddev/tf.sqrt(2.)\n\
+      \t\tnoise_i = tf.random.normal(shape = tf.shape(x), stddev = 1) * noise_stddev/tf.sqrt(2.)\n\
+      \t\tnoise_cplx = tf.complex(noise_r, noise_i, name=\"noise\")\n\n\t\ty = x +\
+      \ noise_cplx\n\n\t\treturn y\n\t\n\t\n\t\n\t\ndef generate_ds_msg(epoch_len,\
+      \ batch_size, M):\n\n\t#Generate a dataset of 'epoch_len' batches of messages.\n\
+      \t#Each batch have a size 'batch_size' and consists of messages (symbols) betwen\
+      \ 0 and M-1\n\trand_msg = tf.random.uniform(shape=[epoch_len, batch_size], minval=0,\
+      \ maxval=M, dtype=tf.int32)\n\tfeatures_ds = tf.data.Dataset.from_tensor_slices(rand_msg)\n\
+      \n\t#The labels are the same as the features : \n\t#this is an autoencoder,\
+      \ we want to predict the same message that has been sent.\n\tlabels_ds = features_ds\n\
+      \treturn (features_ds, labels_ds)\n\t\nclass Autoencoder(Model):\n\n\tdef __init__(self,\
+      \ M, **kwargs):\n\t\tsuper(Autoencoder, self).__init__(**kwargs)\t\t\t\n\t\t\
+      #Set the class' attributes\n\t\tself.M = M\n\n\t\t# Initialise the transmitter\
+      \ layers\n\t\tself.oh = OneHot(self.M)\n\t\tself.d1 = Dense(64, activation='elu')\n\
+      \t\tself.d2 = Dense(2, activation=None)\n\t\tself.norm = Normalization()\n\t\
+      \tself.r2c = R2C()\n\t\t\n\t\t# Initialise the channel\n\t\tself.ch = Channel()\n\
+      \t\t\n\t\t# Initialise the receiver layers\n\t\tself.c2r = C2R()\n\t\tself.d3\
+      \ = Dense(64, activation='elu')\n\t\tself.d4 = Dense(self.M, activation=None)\n\
+      \t\tself.softm = Softmax()\n\n\tdef call(self, inputs, snr):\n\t\t\t\n\t\t#\
+      \ Transmitter\n\t\tself.x1 = self.oh(inputs)\n\t\tself.x2 = self.d1(self.x1)\n\
+      \t\tself.x3 = self.d2(self.x2)\n\t\tself.x4 = self.norm(self.x3)\n\t\tself.x\
+      \ = self.r2c(self.x4)\n\t\t    \n\t\t#Channel\n\t\tself.y = self.ch(self.x,\
+      \ snr)\n\t\t\t\n\t\t\t#Receiver\n\t\tself.pb1 = self.c2r(self.y)\n\t\tself.pb2\
+      \ = self.d3(self.pb1)\n\t\tself.pb3 = self.d4(self.pb2)\n\t\tself.pb = self.softm(self.pb3)\n\
+      \t\t    \n\t\treturn self.pb\n\n###################\n\ndef new_grid(random=False,\
+      \ nb_ch=7, nb_states=5, min_nb=1, max_nb=3, display=False):\n    \n    if random\
+      \ == False :\n        grid = np.array([[1, 1, 1, 1, 0],\n                  \
+      \       [0, 1, 0, 0, 0],\n                         [0, 0, 0, 0, 0],\n      \
+      \                   [0, 1, 0, 0, 0],\n                         [1, 0, 0, 0,\
+      \ 0],\n                         [0, 0, 0, 0, 0],\n                         [0,\
+      \ 0, 0, 1, 1]])\n    else:#sampled\n        poss_ch = []\n        print(gr.sync_block.input_items[2][0])\n\
+      \        nb_good_ch = np.random.randint(min_nb, max_nb)\n        poss_ch.append(np.sort(np.random.choice(np.arange(nb_ch),\
+      \ size=(nb_good_ch), replace=False)))\n\n        for i in range(nb_states-1):\n\
+      \            new = 0\n            while new == 0:\n                nb_good_ch\
+      \ = np.random.randint(min_nb, max_nb)\n                new_ch = np.sort(np.random.choice(np.arange(nb_ch),\
+      \ size=(nb_good_ch), replace=False))\n                for i in range(len(poss_ch)):\n\
+      \                    if np.array_equal(poss_ch[i], new_ch):\n              \
+      \          new-=1\n                if new < 0:\n                    new = 0\n\
+      \                else:\n                    new = 1\n\n            poss_ch.append(new_ch)\n\
+      \n        grid = np.zeros((nb_ch, nb_states))\n\n        for i in range(nb_states):\n\
+      \            for j in range(poss_ch[i].shape[0]):\n                grid[poss_ch[i][j],\
+      \ i] = 1\n                \n    if display == True:\n        plt.figure()\n\
+      \        plt.imshow(np.flip(grid, axis=0), cmap='gray',  origin=\"lower\", vmin=0,\
+      \ vmax=1)#, extent=[0, grid.shape[1], 0, grid.shape[0]])\n        \n    return\
+      \ grid.astype(np.float32)\n    \nclass DQEnv():\n    def __init__(self, nb_channels\
+      \ = 7, nb_states=5, random=False):\n        \n        if (nb_channels+1)%2!=0:\n\
+      \            print('/!\\ Please enter an even number of channels')\n       \
+      \     \n        self.nb_ch = nb_channels\n        self.nb_states = nb_states\n\
+      \        \n        self.grid = new_grid(random, self.nb_ch, self.nb_states,\
+      \ 1, int((self.nb_ch+1)/2), display=True)\n        \n        self.init_state\
+      \ = [int((self.nb_ch-1)/2), int(self.nb_states-1)]\n        self.ch_state =\
+      \ self.init_state[1]\n        self.curr_ch = self.init_state[0]\n        self.sent_mess\
+      \ = 0\n        \n        print('This environment has ' + str(self.nb_ch) +'\
+      \ different channels')\n        \n    def run(self, action):\n        \n   \
+      \     self.sent_mess += 1\n        \n        self.ch_state  = (self.ch_state\
+      \ + 1)%self.nb_states\n        \n        self.curr_ch = (self.curr_ch + action)%self.nb_ch\n\
+      \        \n        reward = self.grid[self.curr_ch, self.ch_state]\n       \
+      \ \n        if self.sent_mess != self.nb_states: \n            end = 0\n   \
+      \     else :\n            end = 1\n        \n        return(reward, [self.grid[:,\
+      \ self.ch_state], self.one_hot(self.curr_ch, self.nb_ch), end])\n    \n    def\
+      \ get_init_state(self):\n        return [self.grid[:, self.init_state[1]], self.one_hot(self.init_state[0],\
+      \ self.nb_ch), 0]\n    \n    def initialize(self):\n        self.ch_state =\
+      \ self.init_state[1]\n        self.curr_ch = self.init_state[0]\n        self.sent_mess\
+      \ = 0\n        \n    def one_hot(self, index, depth):\n        oh = np.zeros(depth,\
+      \ dtype=np.float32)\n        oh[index] = 1\n        return oh\n        \ndef\
+      \ evaluate_dq_agent(agent, grid, display = False):\n\n    action_history=[]\n\
+      \    tot_reward = 0\n    \n    dq_env.initialize()\n    first_state = dq_env.get_init_state()\n\
+      \    action = agent.choose_action(first_state, epsilon = 0)\n    action_history.append(action)\n\
+      \    reward, new_state = dq_env.run(action)\n    tot_reward += reward\n    \n\
+      \    for j in range(grid.shape[1]-1):\n        state = new_state\n        action\
+      \ = agent.choose_action(state, epsilon = 0)\n        action_history.append(action)\n\
+      \        reward, new_state = dq_env.run(action)\n        tot_reward += reward\n\
+      \n    choosen_channels = [(grid.shape[0]-1)/2]\n    for i in range(len(action_history)):\n\
+      \        choosen_channels.append((choosen_channels[i]+action_history[i])%grid.shape[0])\n\
+      \    choosen_channels = choosen_channels[1:]\n\n    if display == True :\n \
+      \       plt.imshow(np.flip(grid, axis=0), origin=\"lower\", cmap='gray', vmin=0,\
+      \ vmax=1)\n        for i in range(len(choosen_channels)):\n            plt.scatter(i,\
+      \ grid.shape[0]-1-choosen_channels[i], color='r')\n        print(str(int(tot_reward))+'/'+str(grid.shape[1])+'\
+      \ packets have been transmitted')\n    return tot_reward        \n"
+    active_threshold: '0.3'
+    affinity: ''
+    alias: ''
+    channels: '[0,0,0,0,0,0,0]'
+    comment: ''
+    example_param: '1.0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_GPU: '0.0'
+    slot_time: '1'
+  states:
+    _io_cache: ('Select channel', 'blk', [('example_param', '1.0'), ('num_GPU', '0.0'),
+      ('active_threshold', '0.9'), ('slot_time', '1'), ('channels', '[0, 0, 0, 0,
+      0, 0, 0]')], [('0', 'complex', 1), ('1', 'complex', 1), ('2', 'complex', 1),
+      ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1), ('6', 'complex',
+      1)], [('0', 'short', 1)], 'Embedded Python Block example - a simple multiply
+      const', ['active_threshold', 'channels', 'slot_time'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1429, 325]
+    rotation: 0
+    state: true
+- name: epy_block_1
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\n\nimport numpy as np\n\
+      import time\nimport schedule\nimport threading\nfrom datetime import datetime,\
+      \ timedelta\nfrom timeslot import Timeslot\nfrom gnuradio import gr\n\nclass\
+      \ blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block\n\
+      \    \"\"\"Embedded Python Block example - a simple multiply const\"\"\"\n \
+      \   def __init__(self, example_param=1.0, poisson_lambda=5.0, interval = 32000,\
+      \ channels = [0,0,0,0,0,0,0]):  #change to numpy array size of inputs. only\
+      \ default arguments here\n        \"\"\"arguments to this function show up as\
+      \ parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n            self,\n\
+      \            name='Channels emulator',   # will show up in GRC\n           \
+      \ in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
+      \            out_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        self.example_param\
+      \ = example_param\n        self.poisson_lambda = poisson_lambda\n        stop_run_continuously\
+      \ = self.run_continuously() # enable therding for scheduler\n        self.interval\
+      \ = interval\n        self.channels = channels\n        for j in range(0,len(self.channels)):\
+      \ #cahnge to synchronus\n        \tself.channels[j] = datetime.now()\n\t\n \
+      \   def work(self, input_items, output_items):\n        \"\"\"example: multiply\
+      \ with constant\"\"\"\n        for i in range(0,np.size(input_items,0)):\n \
+      \       \tactive = np.random.poisson(self.poisson_lambda, 1) > 5.0\n       \
+      \ \tif datetime.now() - self.channels[i] > timedelta(days=0, seconds=1, microseconds=self.interval,\
+      \ milliseconds=0, minutes=0, hours=0, weeks=0):\n        \t\tself.turnoff(i,input_items,\
+      \ output_items)\n        \t\tif active == True:\n        \t\t\tself.channels[i]\
+      \ = datetime.now()\n        \telse:\n        \t\tself.turnon(i,input_items,\
+      \ output_items)\n        return len(output_items[0])\n\t\n    def turnon(self,i,\
+      \ input_items, output_items):\n    \toutput_items[i][:] = input_items[i] * self.example_param\n\
+      \    \t\n    def turnoff(self,i, input_items, output_items):\n    \toutput_items[i][:]\
+      \ = input_items[i] * 0\n    \t\n    def run_continuously(interval=1):\n    \t\
+      cease_continuous_run = threading.Event()\n\n    \tclass ScheduleThread(threading.Thread):\n\
+      \    \t    def run(cls):\n\t            while not cease_continuous_run.is_set():\n\
+      \                        schedule.run_pending()\n                        time.sleep(interval)\n\
+      \    \tcontinuous_thread = ScheduleThread()\n    \tcontinuous_thread.start()\n\
+      \    \treturn cease_continuous_run\n"
+    affinity: ''
+    alias: ''
+    channels: '[0, 0, 0, 0, 0, 0, 0]'
+    comment: ''
+    example_param: '1.0'
+    interval: samp_rate
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    poisson_lambda: '1.0'
+  states:
+    _io_cache: ('Channels emulator', 'blk', [('example_param', '1.0'), ('poisson_lambda',
+      '5.0'), ('interval', '32000'), ('channels', '[0, 0, 0, 0, 0, 0, 0]')], [('0',
+      'complex', 1), ('1', 'complex', 1), ('2', 'complex', 1), ('3', 'complex', 1),
+      ('4', 'complex', 1), ('5', 'complex', 1), ('6', 'complex', 1)], [('0', 'complex',
+      1), ('1', 'complex', 1), ('2', 'complex', 1), ('3', 'complex', 1), ('4', 'complex',
+      1), ('5', 'complex', 1), ('6', 'complex', 1)], 'Embedded Python Block example
+      - a simple multiply const', ['channels', 'example_param', 'interval', 'poisson_lambda'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [464, 192]
+    rotation: 0
+    state: true
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'False'
+    fc: '0'
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: CH1
+    label10: ''''''
+    label2: CH2
+    label3: CH3
+    label4: CH4
+    label5: CH5
+    label6: CH6
+    label7: CH7
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '7'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: firdes.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1010, -87]
+    rotation: 90
+    state: true
+- name: qtgui_number_sink_0
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'False'
+    avg: '0'
+    color1: ("black", "black")
+    color10: ("black", "black")
+    color2: ("black", "black")
+    color3: ("black", "black")
+    color4: ("black", "black")
+    color5: ("black", "black")
+    color6: ("black", "black")
+    color7: ("black", "black")
+    color8: ("black", "black")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '1'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    max: '1'
+    min: '-1'
+    name: '""'
+    nconnections: '1'
+    type: short
+    unit1: ''
+    unit10: ''
+    unit2: ''
+    unit3: ''
+    unit4: ''
+    unit5: ''
+    unit6: ''
+    unit7: ''
+    unit8: ''
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1676, 402]
+    rotation: 0
+    state: true
+- name: qtgui_waterfall_sink_x_0
+  id: qtgui_waterfall_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '1'
+    color10: '0'
+    color2: '0'
+    color3: '0'
+    color4: '0'
+    color5: '0'
+    color6: '0'
+    color7: '0'
+    color8: '0'
+    color9: '0'
+    comment: ''
+    fc: '0'
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    int_max: '10'
+    int_min: '-140'
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    showports: 'False'
+    type: complex
+    update_time: '0.10'
+    wintype: firdes.WIN_BLACKMAN_hARRIS
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1596, 5]
+    rotation: 0
+    state: true
+
+connections:
+- [analog_sig_source_x_0, '0', epy_block_1, '0']
+- [analog_sig_source_x_0_0, '0', epy_block_1, '1']
+- [analog_sig_source_x_0_0_0, '0', epy_block_1, '2']
+- [analog_sig_source_x_0_0_0_0, '0', epy_block_1, '3']
+- [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1, '4']
+- [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_1, '5']
+- [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_1, '6']
+- [blocks_add_xx_0_0_0_0_0_0_0_0, '0', qtgui_waterfall_sink_x_0, '0']
+- [channels_channel_model_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '0']
+- [channels_channel_model_0, '0', epy_block_0, '0']
+- [channels_channel_model_0, '0', qtgui_freq_sink_x_0, '0']
+- [channels_channel_model_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '1']
+- [channels_channel_model_0_0, '0', epy_block_0, '1']
+- [channels_channel_model_0_0, '0', qtgui_freq_sink_x_0, '1']
+- [channels_channel_model_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '2']
+- [channels_channel_model_0_0_0, '0', epy_block_0, '2']
+- [channels_channel_model_0_0_0, '0', qtgui_freq_sink_x_0, '2']
+- [channels_channel_model_0_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '3']
+- [channels_channel_model_0_0_0_0, '0', epy_block_0, '3']
+- [channels_channel_model_0_0_0_0, '0', qtgui_freq_sink_x_0, '3']
+- [channels_channel_model_0_0_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '4']
+- [channels_channel_model_0_0_0_0_0, '0', epy_block_0, '4']
+- [channels_channel_model_0_0_0_0_0, '0', qtgui_freq_sink_x_0, '4']
+- [channels_channel_model_0_0_0_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '5']
+- [channels_channel_model_0_0_0_0_0_0, '0', epy_block_0, '5']
+- [channels_channel_model_0_0_0_0_0_0, '0', qtgui_freq_sink_x_0, '5']
+- [channels_channel_model_0_0_0_0_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '6']
+- [channels_channel_model_0_0_0_0_0_0_0, '0', epy_block_0, '6']
+- [channels_channel_model_0_0_0_0_0_0_0, '0', qtgui_freq_sink_x_0, '6']
+- [epy_block_0, '0', qtgui_number_sink_0, '0']
+- [epy_block_1, '0', channels_channel_model_0, '0']
+- [epy_block_1, '1', channels_channel_model_0_0, '0']
+- [epy_block_1, '2', channels_channel_model_0_0_0, '0']
+- [epy_block_1, '3', channels_channel_model_0_0_0_0, '0']
+- [epy_block_1, '4', channels_channel_model_0_0_0_0_0, '0']
+- [epy_block_1, '5', channels_channel_model_0_0_0_0_0_0, '0']
+- [epy_block_1, '6', channels_channel_model_0_0_0_0_0_0_0, '0']
+
+metadata:
+  file_format: 1
