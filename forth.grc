@@ -735,9 +735,9 @@ blocks:
       \ Network\n        self.gamma = gamma\n        self.learning_rate = learning_rate\n\
       \        self.actions_number = self.number_of_channels\n        self.epsilon\
       \ = 0.75\n        self.nb_trainings = 250\n        self.loss = []  # Keep trak\
-      \ of the losses\n        \n        self.train_flag = False\t\n        #self.env\
-      \ = self.channelenv(self.number_of_channels, self.initial_channel , self.grid)\n\
-      \        \n        \n        self.dq_env = self.DQEnv(self.number_of_channels,\
+      \ of the losses\n        \n        self.train_flag = False\n        self.done\
+      \ = False\n        #self.env = self.channelenv(self.number_of_channels, self.initial_channel\
+      \ , self.grid)\n        \n        \n        self.dq_env = self.DQEnv(self.number_of_channels,\
       \ self.window_size, False, self.grid.T)\n        self.agent_dq = self.DQAgent(self.number_of_channels,\
       \ self.learning_rate, self.gamma)\n        \n        print('##################################')\n\
       \        print('ENV initial state:')\n        print(self.dq_env.get_init_state())\n\
@@ -750,9 +750,12 @@ blocks:
       \                    self.last_datetime = datetime.now()\n                 \
       \   self.channels = np.zeros(self.number_of_channels)\n                    #print(self.grid.T)\n\
       \                    #self.env.transmit(self.grid.T)\n                    self.grid_flag\
-      \ = self.grid_flag+1\n        \tif (np.mean(input_items[i][:])>self.active_threshold):\n\
-      \                    self.channels[i] = 1\n        \toutput_items[0][:] = input_items[i]\n\
-      \        \n        if (self.grid_flag == self.number_of_channels*self.window_size+1):#and(datetime.now()\
+      \ = self.grid_flag+1\n                    if self.done == True:\n          \
+      \          \tstate = [self.channels.astype(np.float32), self.dq_env.one_hot(self.dq_env.init_state[0],\
+      \ self.number_of_channels), 0]\n                    \toutput_items[0][:] = self.agent_dq.choose_action(state,\
+      \ self.epsilon)\n        \tif (np.mean(input_items[i][:])>self.active_threshold):\n\
+      \                    self.channels[i] = 1\n        \t\n        \n        if\
+      \ (self.grid_flag == self.number_of_channels*self.window_size+1):#and(datetime.now()\
       \ - self.last_datetime > timedelta(days=0, seconds=self.slot_time, microseconds=0,\
       \ milliseconds=0, minutes=0, hours=0, weeks=0)):\n        \tself.train_flag\
       \ = True          \t\n        \tprint(self.grid.T)\n\t\t# Run 200 episodes\n\
@@ -770,10 +773,10 @@ blocks:
       \ # Insert state, action, reward, new state in history\n                   \
       \ \t\n        \tprint('Replay buffer History populated')\n        \t       \
       \          \t \n\n        \t\n        \t\n\n        if self.train_flag == True:\n\
-      \t        print('trainflagis:',self.train_flag)\n        \tself.train_flag =\
-      \ False\n        \tfor i in range(self.nb_trainings):\n        \t\tself.dq_env.initialize()\n\
-      \        \t\tstate = self.dq_env.get_init_state()\n    \n        \t\taction\
-      \ = self.agent_dq.choose_action(state, self.epsilon)\n        \t\treward, new_state\
+      \t        print('Training...')\n        \tself.train_flag = False\n        \t\
+      for i in range(self.nb_trainings):\n        \t\tself.dq_env.initialize()\n \
+      \       \t\tstate = self.dq_env.get_init_state()\n    \n        \t\taction =\
+      \ self.agent_dq.choose_action(state, self.epsilon)\n        \t\treward, new_state\
       \ = self.dq_env.run(action)\n        \t\tself.agent_dq.insert_history(state,\
       \ action, reward, new_state) # Insert state, action, reward, new state in history\
       \ \n        \t\tself.agent_dq.learn(10) # Each time we store a new history,\
@@ -787,15 +790,15 @@ blocks:
       \ #Save the losses for future visualization\n        \t\t\t#Every 10 iterations\
       \ we copy the parameters of the online DQN to the offline DQN\n        \t\t\
       if (i+1)%10 == 0:\n        \t\t\tself.agent_dq.copy_parameters()\n        \t\
-      \t\tprint((i+1), end=', ')\n\n\n\n\n\n\n        \t\n        \t\n        \t\n\
-      \        \t\n        return len(output_items[0])\n        \n        \n     \
-      \   \n        \n        \n        \n    class channelenv(Env):\n    \tdef __init__(self,\
-      \ number_of_channels, selected_channel, grid):\n    \t\t\n    \t\t#channel 0\
-      \ to n\n    \t\tself.action_space = Discrete(number_of_channels)\n    \t\t\n\
-      \    \t\tself.observation_spcae = grid #history?\n    \t\t\n    \t\t#initial\
-      \ channel (state)\n    \t\tself.selected_channel = selected_channel \n    \t\
-      \n    \t#step function\n    \tdef transmit(self, grid):\n\t    \t#Send a message\
-      \ on the selected channel and calculate reward\n\t    \tif grid[0][self.selected_channel]\
+      \t\tprint((i+1), end=', ')\n        \tself.done = True\n      \n\n\n\n\n   \
+      \     \t\n        \t\n        \t\n        \t\n        return len(output_items[0])\n\
+      \        \n        \n        \n        \n        \n        \n    class channelenv(Env):\n\
+      \    \tdef __init__(self, number_of_channels, selected_channel, grid):\n   \
+      \ \t\t\n    \t\t#channel 0 to n\n    \t\tself.action_space = Discrete(number_of_channels)\n\
+      \    \t\t\n    \t\tself.observation_spcae = grid #history?\n    \t\t\n    \t\
+      \t#initial channel (state)\n    \t\tself.selected_channel = selected_channel\
+      \ \n    \t\n    \t#step function\n    \tdef transmit(self, grid):\n\t    \t\
+      #Send a message on the selected channel and calculate reward\n\t    \tif grid[0][self.selected_channel]\
       \ == 1:\n\t    \t\treward = 1\n\t    \telse:\n\t    \t\treward = -1\t\n\t  \
       \  \t#self.selected_channel = self.action    \t\t\n\t    \tprint (grid.T)\n\t\
       \    \tprint(self.action_spece)\n\n    \n    \n    \n    # DO NOT LOOK AT THAT\
