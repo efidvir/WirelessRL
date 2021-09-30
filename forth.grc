@@ -393,12 +393,12 @@ blocks:
     minoutbuf: '0'
     noise_voltage: '0.1'
     seed: '11'
-    taps: 1.0 + 1.0j
+    taps: 0.5 + 0.5j
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1849, 226]
+    coordinate: [1801, 244]
     rotation: 0
     state: true
 - name: epy_block_0
@@ -639,6 +639,70 @@ blocks:
       \        # a callback is registered (properties work, too).\n        self.example_param\
       \ = example_param\n        self.poisson_lambda = poisson_lambda\n        stop_run_continuously\
       \ = self.run_continuously() # enable therding for scheduler\n        self.interval\
+      \ = interval\n        self.active = [False,False,False,False,False,False,False]\n\
+      \        self.channels = [0,0,0,0,0,0,0]#cahnge to size of inputs\n        for\
+      \ j in range(0,len(self.channels)): #cahnge to synchronus\n        \tself.channels[j]\
+      \ = datetime.now()\n\t\n    def work(self, input_items, output_items):\n   \
+      \     \"\"\"example: multiply with constant\"\"\"\n        for i in range(0,np.size(input_items,0)):\n\
+      \        \tif datetime.now() - self.channels[i] > (i+1)*timedelta(days=0, seconds=1,\
+      \ microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):  #if time passed\n\
+      \        \t\t#print(self.active)\n        \t\tif self.active[i] == True:\n \
+      \       \t\t\tself.active[i] = False\n        \t\telse: \n\t        \t\tself.active[i]\
+      \ = True\n        \t\tself.channels[i] = datetime.now() \n        \tif self.active[i]\
+      \ == True:\n        \t\tself.turnon(i,input_items, output_items)\n        \t\
+      else:\n        \t\tself.turnoff(i,input_items, output_items)\n        \t\t\n\
+      \        \t\t\t\n        \t\n        return len(output_items[0])\n\t\n    def\
+      \ turnon(self,i, input_items, output_items):\n    \toutput_items[i][:] = input_items[i]\
+      \ \n    \t\n    def turnoff(self,i, input_items, output_items):\n    \toutput_items[i][:]\
+      \ = input_items[i] * 0\n    \t\n    def run_continuously(interval=1):\n    \t\
+      cease_continuous_run = threading.Event()\n\n    \tclass ScheduleThread(threading.Thread):\n\
+      \    \t    def run(cls):\n\t            while not cease_continuous_run.is_set():\n\
+      \                        schedule.run_pending()\n                        time.sleep(interval)\n\
+      \    \tcontinuous_thread = ScheduleThread()\n    \tcontinuous_thread.start()\n\
+      \    \treturn cease_continuous_run\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    example_param: '1.0'
+    interval: samp_rate
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    poisson_lambda: '1.0'
+  states:
+    _io_cache: ('Channels emulator', 'blk', [('example_param', '1.0'), ('poisson_lambda',
+      '5.0'), ('interval', '32000')], [('0', 'complex', 1), ('1', 'complex', 1), ('2',
+      'complex', 1), ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1),
+      ('6', 'complex', 1)], [('0', 'complex', 1), ('1', 'complex', 1), ('2', 'complex',
+      1), ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1), ('6', 'complex',
+      1)], 'Embedded Python Block example - a simple multiply const', ['example_param',
+      'interval', 'poisson_lambda'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [473, 328]
+    rotation: 0
+    state: enabled
+- name: epy_block_1_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\n\nimport numpy as np\n\
+      import time\nimport schedule\nimport threading\nfrom datetime import datetime,\
+      \ timedelta\nfrom timeslot import Timeslot\nfrom gnuradio import gr\n\nclass\
+      \ blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block\n\
+      \    \"\"\"Embedded Python Block example - a simple multiply const\"\"\"\n \
+      \   def __init__(self, example_param=1.0, poisson_lambda=5.0, interval = 32000):\
+      \  #change to numpy array size of inputs. only default arguments here\n    \
+      \    \"\"\"arguments to this function show up as parameters in GRC\"\"\"\n \
+      \       gr.sync_block.__init__(\n            self,\n            name='Channels\
+      \ emulator',   # will show up in GRC\n            in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
+      \            out_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        self.example_param\
+      \ = example_param\n        self.poisson_lambda = poisson_lambda\n        stop_run_continuously\
+      \ = self.run_continuously() # enable therding for scheduler\n        self.interval\
       \ = interval\n        self.channels = [0,0,0,0,0,0,0]#cahnge to size of inputs\n\
       \        for j in range(0,len(self.channels)): #cahnge to synchronus\n     \
       \   \tself.channels[j] = datetime.now()\n\t\n    def work(self, input_items,\
@@ -677,9 +741,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [475, 328]
+    coordinate: [478, 608]
     rotation: 0
-    state: true
+    state: disabled
 - name: epy_block_2
   id: epy_block
   parameters:
@@ -946,14 +1010,16 @@ blocks:
       \ tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
       from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
       \ import Dense\n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\
-      \nclass blk(gr.sync_block):  # other base classes are basic_block, decim_block,\
-      \ interp_block\n    \"\"\"Embedded Python Block example - a simple multiply\
-      \ const\"\"\"\n\n    def __init__(self,number_of_channels=7,seed = 0, num_GPU=0.0,\
-      \ active_threshold= 0.9, slot_time = 1, window_size = 5, initial_channel = 0,\
-      \ gamma = 1, learning_rate = 0.01, epsilon = 1):  # only default arguments here\n\
-      \        \"\"\"arguments to this function show up as parameters in GRC\"\"\"\
-      \n        gr.sync_block.__init__(\n            self,\n            name='RL Channels\
-      \ select self agent',   # will show up in GRC\n            in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
+      \n\nfrom matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self,number_of_channels=7,seed =\
+      \ 0, num_GPU=0.0, active_threshold= 0.9, slot_time = 1, window_size = 5, initial_channel\
+      \ = 0, gamma = 1, learning_rate = 0.01, epsilon = 1):  # only default arguments\
+      \ here\n        \"\"\"arguments to this function show up as parameters in GRC\"\
+      \"\"\n        gr.sync_block.__init__(\n            self,\n            name='RL\
+      \ Channels select self agent',   # will show up in GRC\n            in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
       \            out_sig=[np.uint16]\n        )\n        # if an attribute with\
       \ the same name as a parameter is found,\n        # a callback is registered\
       \ (properties work, too).\n        \n        #initailize tensorflow and GPU\
@@ -971,59 +1037,63 @@ blocks:
       \        self.grid = np.zeros((self.window_size, self.number_of_channels))\n\
       \        self.initial_channel = initial_channel #change to random\n        self.grid_flag\
       \ = 0\n        self.channel_decision = self.initial_channel\n        \n    \
-      \    self.collision = 0 \n        #initialize DQN env\n        self.dq_env =\
-      \ self.DQEnv(self.number_of_channels, self.window_size, False, self.grid.T)\n\
-      \n        #initialize DQN Neural Network\n        self.gamma = gamma\n     \
-      \   self.learning_rate = learning_rate\n        self.actions_number = self.number_of_channels\n\
-      \        self.epsilon = epsilon\n        self.nb_trainings = 250\n        self.loss\
-      \ = []  # Keep trak of the losses\n        \n        self.train_flag = False\n\
-      \        self.done = False\n\n        \n        \n        \n        self.agent_dq\
-      \ = self.DQAgent(self.number_of_channels, self.learning_rate, self.gamma)\n\
-      \        \n        print('##################################')\n        print('ENV\
-      \ initial state:')\n        print(self.dq_env.get_init_state())\n        print('##################################')\n\
-      \      \n\n    def work(self, input_items, output_items):\n        \n      \
-      \  #Sample and mark channels activity\n        for i in range(0,np.size(input_items,0)):\t\
-      \n                \n                #Energy detected during time slot, mark\
-      \ as occupied \n                if (np.mean(input_items[i][:])>self.active_threshold):\n\
-      \                \tself.channels[i] = 1\n                \t\n        output_items[0][:]=\
-      \ self.channel_decision        \t\n\t#Check slot time\n        if (datetime.now()\
-      \ - self.last_datetime) > timedelta(days=0, seconds=self.slot_time, microseconds=0,\
-      \ milliseconds=0, minutes=0, hours=0, weeks=0):\n            #when training\
-      \ is done, make a decision\n            if self.done == True:\n            \t\
-      state = [self.channels.astype(np.float32), self.dq_env.one_hot(self.dq_env.init_state[0],\
+      \    self.collision = 0\n        self.total_error = 0 \n        self.total_count\
+      \ = 1 \n        #initialize DQN env\n        #self.dq_env = self.DQEnv(self.number_of_channels,\
+      \ self.window_size, False, self.grid.T)\n\n        #initialize DQN Neural Network\n\
+      \        self.gamma = gamma\n        self.learning_rate = learning_rate\n  \
+      \      self.actions_number = self.number_of_channels\n        self.epsilon =\
+      \ epsilon\n        self.nb_trainings = 250\n        self.loss = []  # Keep trak\
+      \ of the losses\n        \n        self.train_flag = False\n        self.done\
+      \ = False\n        \n        self.agent_dq = self.DQAgent(self.number_of_channels,\
+      \ self.learning_rate, self.gamma)\n        #sensed_ch, curr_ch, end = self.dq_env.get_init_state()\n\
+      \        #print('##################################')\n        #print('ENV initial\
+      \ state:')\n        #print('State: ', sensed_ch,', Current Channel: ', curr_ch)\n\
+      \        #print('##################################')\n      \n\n    def work(self,\
+      \ input_items, output_items):       \t\n        #Check slot time\n        if\
+      \ (datetime.now() - self.last_datetime) > timedelta(days=0, seconds=self.slot_time,\
+      \ microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):\n          \
+      \  #Sample and mark channels activity\n            for i in range(0,np.size(input_items,0)):\n\
+      \            \t#Energy detected during time slot, mark as occupied \n      \
+      \      \tif (np.mean(abs(input_items[i][:]))>self.active_threshold):\n     \
+      \       \t\tself.channels[i] = 1\n            print(self.channels,'    ', datetime.now())\
+      \   \n            #when training is done, make a decision\n            if self.done\
+      \ == True:\n            \tstate = [self.channels.astype(np.float32), self.dq_env.one_hot(self.dq_env.init_state[0],\
       \ self.number_of_channels), 0]\n            \tself.channel_decision = self.agent_dq.choose_action(state,\
-      \ self.epsilon)+1\n            \t\n            \tprint('CH: ',self.channels)\n\
-      \            \ttemp = np.zeros(np.size(self.channels))\n            \ttemp[self.channel_decision-1]=1\n\
-      \            \tprint('DC: ',temp)\n            \tprint(self.collision)\n   \
-      \         \tif self.channels[self.channel_decision-1] == 1:\n            \t\t\
-      self.collision += 1             \n            self.grid = self.make_grid(self.grid,(self.channels)).T\n\
+      \ self.epsilon)\n            \tself.total_count += 1\n            \tself.total_ratio\
+      \ = (self.total_error)/self.total_count\n            \tprint('CH: ',self.channels)\n\
+      \            \ttemp = np.zeros(np.size(self.channels))\n            \ttemp[self.channel_decision]=1\n\
+      \            \tprint('DC: ',temp)\n            \tprint('count: ', self.total_count,\
+      \ ' Errors: ', self.total_error, ' ratio: ',self.total_ratio)\n         \t\n\
+      \            \tif self.channels[self.channel_decision] == 1:\n            \t\
+      \tself.collision += 1             \n            self.grid = self.make_grid(self.grid,(self.channels))\n\
       \            self.last_datetime = datetime.now()\n            self.channels\
       \ = np.zeros(self.number_of_channels)\n            #print(self.grid)\n     \
-      \       \n            self.grid_flag += 1\n            \n        if self.collision\
-      \ == 1:\n        \tself.collision = 0\n        \tself.grid_flag = self.window_size+1\n\
-      \        \tself.train_flag = True\n\n        \t\n        #Full window sized\
-      \ grid\n        if (self.grid_flag == self.window_size+1): \n\t\t\n        \t\
-      #initialize DQN env\n        \tself.dq_env = self.DQEnv(self.number_of_channels,\
-      \ self.window_size, False, self.grid)\n\t\t\n\t\t# Run 200 episodes\n      \
-      \  \tfor i in range(1000):\n                    \n                    self.dq_env.initialize()\n\
-      \                    \n                    state = self.dq_env.get_init_state()\n\
-      \                    action = self.agent_dq.choose_action(state, self.epsilon)\n\
-      \                    reward, new_state = self.dq_env.run(action)\n\t    \n \
-      \                   self.agent_dq.insert_history(state, action, reward, new_state)\
-      \ # Insert state, action, reward, new state in history \n\t    \n          \
-      \          # While it's not the end of the episode\n                    while\
-      \ new_state[2]==0 :\n                    \tstate = new_state\n             \
-      \       \taction = self.agent_dq.choose_action(state, self.epsilon)\n      \
-      \              \treward, new_state = self.dq_env.run(action)\n\t\t\n       \
-      \             \tself.agent_dq.insert_history(state, action, reward, new_state)\
-      \ # Insert state, action, reward, new state in history\n        \t\n       \
-      \ \tself.train_flag = True                      \t\n        \tprint('Replay\
-      \ buffer History populated')\n        \t                 \t \n\n        \t\n\
-      \        \t\n\n        if self.train_flag == True:\n\t        print('Training...')\n\
-      \        \tself.train_flag = False\n        \tfor i in range(self.nb_trainings):\n\
-      \        \t\tself.dq_env.initialize()\n        \t\tstate = self.dq_env.get_init_state()\n\
-      \    \n        \t\taction = self.agent_dq.choose_action(state, self.epsilon)\n\
-      \        \t\treward, new_state = self.dq_env.run(action)\n        \t\tself.agent_dq.insert_history(state,\
+      \       \n            self.grid_flag += 1\n        output_items[0][:]= self.channel_decision\
+      \      \n        if self.collision == 1:\n        \tself.total_error += 1\n\
+      \        \tself.collision = 0\n        \t#self.grid_flag = self.window_size+1\n\
+      \        \t\n\n        \t\n        #Full window sized grid\n        if (self.grid_flag\
+      \ == self.window_size+1): \n\t\t\n        \t#initialize DQN env\n        \t\
+      self.dq_env = self.DQEnv(self.number_of_channels, self.window_size, False, self.grid.T)\n\
+      \t\n\t\t# Run 200 episodes\n        \tfor i in range(200):\n               \
+      \     \n                    self.dq_env.initialize()\n                    \n\
+      \                    state = self.dq_env.get_init_state()\n                \
+      \    action = self.agent_dq.choose_action(state, self.epsilon)\n           \
+      \         reward, new_state = self.dq_env.run(action)\n\t    \n            \
+      \        self.agent_dq.insert_history(state, action, reward, new_state) # Insert\
+      \ state, action, reward, new state in history \n\t    \n                   \
+      \ # While it's not the end of the episode\n                    while new_state[2]==0\
+      \ :\n                    \tstate = new_state\n                    \taction =\
+      \ self.agent_dq.choose_action(state, self.epsilon)\n                    \treward,\
+      \ new_state = self.dq_env.run(action)\n\t\t\n                    \tself.agent_dq.insert_history(state,\
+      \ action, reward, new_state) # Insert state, action, reward, new state in history\n\
+      \        \t\n        \tself.train_flag = True                      \t\n    \
+      \    \tprint('Replay buffer History populated')\n        \t                \
+      \ \t \n\n        \t\n        \t\n\n        if self.train_flag == True:\n\t \
+      \       print('Training...')\n        \tself.train_flag = False\n        \t\n\
+      \        \tfor i in range(self.nb_trainings):\n        \t\tself.dq_env.initialize()\n\
+      \        \t\tstate = self.dq_env.get_init_state()\n    \n        \t\taction\
+      \ = self.agent_dq.choose_action(state, self.epsilon)\n        \t\treward, new_state\
+      \ = self.dq_env.run(action)\n        \t\tself.agent_dq.insert_history(state,\
       \ action, reward, new_state) # Insert state, action, reward, new state in history\
       \ \n        \t\tself.agent_dq.learn(10) # Each time we store a new history,\
       \ we perform a training on random data\n    \n        \t\t# While it's not the\
@@ -1036,32 +1106,32 @@ blocks:
       \ #Save the losses for future visualization\n        \t\t\t#Every 10 iterations\
       \ we copy the parameters of the online DQN to the offline DQN\n        \t\t\
       if (i+1)%10 == 0:\n        \t\t\tself.agent_dq.copy_parameters()\n        \t\
-      \t\tprint((i+1), end=', ')\n        \tself.done = True\n      \t\t\n       \
-      \ return len(output_items[0])\n        \n\n    \n    \n    class DQEnv():\n\
-      \    \tdef __init__(self, nb_channels = 7, nb_states=5, random=False , grid\
-      \ = []):\n        \n\t    \tif (nb_channels+1)%2!=0:\n\t    \t\tprint('/!\\\
-      \ Please enter an even number of channels')\n            \n\t    \tself.nb_ch\
-      \ = nb_channels\n\t    \tself.nb_states = nb_states\n        \n\t    \tself.grid\
-      \ = grid\n\t    \tprint ('env grid:', self.grid)\n\t    \tself.init_state =\
-      \ [int((self.nb_ch-1)/2), int(self.nb_states-1)]\n\t    \tself.ch_state = self.init_state[1]\n\
-      \t    \tself.curr_ch = self.init_state[0]\n\t    \tself.sent_mess = 0\n    \
-      \    \n\t    \tprint('This environment has ' + str(self.nb_ch) +' different\
-      \ channels')\n        \n    \tdef run(self, action):\n        \n\t    \tself.sent_mess\
-      \ += 1\n        \n\t    \tself.ch_state  = (self.ch_state + 1)%self.nb_states\n\
-      \        \n\t    \tself.curr_ch = (self.curr_ch + action)%self.nb_ch\n     \
-      \   \n\t    \treward = self.grid[self.curr_ch, self.ch_state]\n        \n\t\
-      \    \tif self.sent_mess != self.nb_states: \n\t    \t\tend = 0\n\t    \telse\
-      \ :\n\t    \t\tend = 1\n        \n\t    \treturn(reward, [self.grid[:, self.ch_state],\
-      \ self.one_hot(self.curr_ch, self.nb_ch), end])\n    \n    \tdef get_init_state(self):\n\
-      \t    \treturn [self.grid[:, self.init_state[1]], self.one_hot(self.init_state[0],\
-      \ self.nb_ch), 0]\n    \n    \tdef initialize(self):\n\t    \tself.ch_state\
-      \ = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\t    \t\
-      self.sent_mess = 0\n        \n    \tdef one_hot(self, index, depth):\n\t   \
-      \ \toh = np.zeros(depth, dtype=np.float32)\n\t    \toh[index] = 1\n\t    \t\
-      return oh\n    \n    \n    class DQAgent():\n    \tdef __init__(self, nb_channels,\
+      \t\tprint((i+1), end=', ')\n        \tself.done = True\n        \t#plt.semilogy(np.arange(len(self.loss)),\
+      \ self.loss)\n        \t#plt.show()\n        \t\n        return len(output_items[0])\n\
+      \        \n\n    \n    \n    class DQEnv():\n    \tdef __init__(self, nb_channels\
+      \ = 7, nb_states=5, random=False , grid = []):\n        \n\t    \tif (nb_channels+1)%2!=0:\n\
+      \t    \t\tprint('/!\\ Please enter an even number of channels')\n          \
+      \  \n\t    \tself.nb_ch = nb_channels\n\t    \tself.nb_states = nb_states\n\
+      \        \n\t    \tself.grid = grid\n\t    \tprint ('env grid:')\n\t    \tprint(self.grid)\n\
+      \t    \tself.init_state = [int((self.nb_ch-1)/2), int(self.nb_states-1)]\n\t\
+      \    \tself.ch_state = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\
+      \t    \tself.sent_mess = 0\n        \n\t    \tprint('This environment has '\
+      \ + str(self.nb_ch) +' different channels')\n        \n    \tdef run(self, action):\n\
+      \        \n\t    \tself.sent_mess += 1\n        \n\t    \tself.ch_state  = (self.ch_state\
+      \ + 1)%self.nb_states\n        \n\t    \tself.curr_ch = (self.curr_ch + action)%self.nb_ch\n\
+      \        \n\t    \treward = np.abs(self.grid[self.curr_ch, self.ch_state]-1)\n\
+      \        \n\t    \tif self.sent_mess != self.nb_states: \n\t    \t\tend = 0\n\
+      \t    \telse :\n\t    \t\tend = 1\n        \n\t    \treturn(reward, [self.grid[:,\
+      \ self.ch_state], self.one_hot(self.curr_ch, self.nb_ch), end])\n    \n    \t\
+      def get_init_state(self):\n\t    \treturn [self.grid[:, self.init_state[1]],\
+      \ self.one_hot(self.init_state[0], self.nb_ch), 0]\n    \n    \tdef initialize(self):\n\
+      \t    \tself.ch_state = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\
+      \t    \tself.sent_mess = 0\n        \n    \tdef one_hot(self, index, depth):\n\
+      \t    \toh = np.zeros(depth, dtype=np.float32)\n\t    \toh[index] = 1\n\t  \
+      \  \treturn oh\n    \n    \n    class DQAgent():\n    \tdef __init__(self, nb_channels,\
       \ learning_rate, gamma):\n    \t\tself.nb_ch = nb_channels\n    \t\tself.nb_actions\
       \ = nb_channels\n    \t\tself.gamma = gamma\n    \t\tself.learning_rate = learning_rate\n\
-      \    \t\t\n    \t\tself.history_length = 1000\n    \t\tself.history = [[]for\
+      \    \t\t\n    \t\tself.history_length = 200\n    \t\tself.history = [[]for\
       \ i in range(self.history_length)]\n    \t\tself.history_idx = 0\n    \t\t\n\
       \    \t\t#Create and initialize the online DQN\n    \t\tself.DQN_online = tf.keras.models.Sequential([Dense(2*self.nb_ch,\
       \ activation='relu'), Dense(self.nb_actions, activation='softplus') #Outputs\
@@ -1125,19 +1195,17 @@ blocks:
       \ # Move the history_idx by one\n    \n    \tdef copy_parameters(self):\n  \
       \  \t\t\"\"\"Copy the parameters of the online network to the offline network\"\
       \"\"\n\n    \t\tweights = self.DQN_online.get_weights()\n    \t\tself.DQN_offline.set_weights(weights)\n\
-      \n\n\n\t    \t\n    def build_model(states, actions):\n    \tmodel = Sequential()\n\
-      \    \tmodel.add(Dense(24, activation='relu', input_shape=states))\n    \tmodel.add(Dense(actions,\
-      \ activation='linear'))\n    \treturn model\n\t\t\n\n    def make_grid(self,grid,channels):\n\
-      \        grid = np.append(grid, channels).reshape(self.window_size+1,7)\n  \
-      \      grid = np.delete(grid, 0, 0)\n        grid = grid.reshape(self.window_size,self.number_of_channels)\n\
+      \n\t\t\n\n    def make_grid(self,grid,channels):\n        grid = np.append(grid,\
+      \ channels).reshape(self.window_size+1,7)\n        grid = np.delete(grid, 0,\
+      \ 0)\n        grid = grid.reshape(self.window_size,self.number_of_channels)\n\
       \        return grid.astype(np.float32)\n"
-    active_threshold: '0.3'
+    active_threshold: '0.9'
     affinity: ''
     alias: ''
     comment: ''
-    epsilon: '0.9'
+    epsilon: '1'
     gamma: '1'
-    initial_channel: '0'
+    initial_channel: '6'
     learning_rate: '0.01'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -1145,7 +1213,7 @@ blocks:
     number_of_channels: '7'
     seed: '1'
     slot_time: '1'
-    window_size: '20'
+    window_size: '128'
   states:
     _io_cache: ('RL Channels select self agent', 'blk', [('number_of_channels', '7'),
       ('seed', '0'), ('num_GPU', '0.0'), ('active_threshold', '0.9'), ('slot_time',
@@ -1158,7 +1226,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1370, 901]
+    coordinate: [1373, 901]
     rotation: 0
     state: enabled
 - name: epy_block_4
@@ -1184,7 +1252,8 @@ blocks:
       \ seconds=1, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):\n\
       \            #when training is done, make a decision  \n            self.last_datetime\
       \ = datetime.now()\n            self.index = input_items[7][0]\n           \
-      \ print(self.index)\n\n        output_items[0][:] = input_items[self.index][:]\n\
+      \ #print(self.index)\n            if self.index < 0 or self.index > 6:\n   \
+      \         \tself.index = 0\n\n        output_items[0][:] = input_items[self.index][:]\n\
       \        return len(output_items[0])\n"
     affinity: ''
     alias: ''
@@ -1200,10 +1269,23 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1617, 98]
+    coordinate: [1616, 105]
     rotation: 0
     state: true
 - name: note_0
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: Deterministic channals
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [466, 558]
+    rotation: 0
+    state: true
+- name: note_0_0
   id: note
   parameters:
     alias: ''
@@ -1213,9 +1295,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [466, 558]
+    coordinate: [470, 838]
     rotation: 0
-    state: true
+    state: disabled
 - name: note_1
   id: note
   parameters:
@@ -1369,7 +1451,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1662, 376]
+    coordinate: [1676, 385]
     rotation: 0
     state: true
 - name: qtgui_waterfall_sink_x_0
@@ -1389,9 +1471,9 @@ blocks:
     alpha9: '1.0'
     axislabels: 'True'
     bw: samp_rate
-    color1: '5'
+    color1: '3'
     color10: '0'
-    color2: '6'
+    color2: '2'
     color3: '0'
     color4: '0'
     color5: '0'
@@ -1430,7 +1512,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [2124, 77]
+    coordinate: [1921, 53]
     rotation: 0
     state: true
 - name: zeromq_pub_msg_sink_0
@@ -1470,18 +1552,25 @@ blocks:
 
 connections:
 - [analog_sig_source_x_0, '0', epy_block_1, '0']
+- [analog_sig_source_x_0, '0', epy_block_1_0, '0']
 - [analog_sig_source_x_0, '0', epy_block_4, '0']
 - [analog_sig_source_x_0_0, '0', epy_block_1, '1']
+- [analog_sig_source_x_0_0, '0', epy_block_1_0, '1']
 - [analog_sig_source_x_0_0, '0', epy_block_4, '1']
 - [analog_sig_source_x_0_0_0, '0', epy_block_1, '2']
+- [analog_sig_source_x_0_0_0, '0', epy_block_1_0, '2']
 - [analog_sig_source_x_0_0_0, '0', epy_block_4, '2']
 - [analog_sig_source_x_0_0_0_0, '0', epy_block_1, '3']
+- [analog_sig_source_x_0_0_0_0, '0', epy_block_1_0, '3']
 - [analog_sig_source_x_0_0_0_0, '0', epy_block_4, '3']
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1, '4']
+- [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1_0, '4']
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_4, '4']
 - [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_1, '5']
+- [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_1_0, '5']
 - [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_4, '5']
 - [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_1, '6']
+- [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_1_0, '6']
 - [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_4, '6']
 - [blocks_add_xx_0_0_0_0_0_0_0_0, '0', qtgui_waterfall_sink_x_0, '0']
 - [channels_channel_model_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '0']
@@ -1530,6 +1619,13 @@ connections:
 - [epy_block_1, '4', channels_channel_model_0_0_0_0_0, '0']
 - [epy_block_1, '5', channels_channel_model_0_0_0_0_0_0, '0']
 - [epy_block_1, '6', channels_channel_model_0_0_0_0_0_0_0, '0']
+- [epy_block_1_0, '0', channels_channel_model_0, '0']
+- [epy_block_1_0, '1', channels_channel_model_0_0, '0']
+- [epy_block_1_0, '2', channels_channel_model_0_0_0, '0']
+- [epy_block_1_0, '3', channels_channel_model_0_0_0_0, '0']
+- [epy_block_1_0, '4', channels_channel_model_0_0_0_0_0, '0']
+- [epy_block_1_0, '5', channels_channel_model_0_0_0_0_0_0, '0']
+- [epy_block_1_0, '6', channels_channel_model_0_0_0_0_0_0_0, '0']
 - [epy_block_2, '0', blocks_null_sink_0, '0']
 - [epy_block_3, '0', qtgui_number_sink_0, '0']
 - [epy_block_3_0, '0', epy_block_4, '7']
