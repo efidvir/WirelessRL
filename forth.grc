@@ -1042,10 +1042,11 @@ blocks:
       \ self.window_size, False, self.grid.T)\n\n        #initialize DQN Neural Network\n\
       \        self.gamma = gamma\n        self.learning_rate = learning_rate\n  \
       \      self.actions_number = self.number_of_channels\n        self.epsilon =\
-      \ epsilon\n        self.nb_trainings = 250\n        self.loss = []  # Keep trak\
-      \ of the losses\n        \n        self.train_flag = False\n        self.done\
-      \ = False\n        \n        self.agent_dq = self.DQAgent(self.number_of_channels,\
-      \ self.learning_rate, self.gamma)\n        #sensed_ch, curr_ch, end = self.dq_env.get_init_state()\n\
+      \ epsilon\n        self.nb_trainings = 1000\n        self.loss = []  # Keep\
+      \ trak of the losses\n        self.channel_decision = self.initial_channel\n\
+      \        self.train_flag = False\n        self.done = False\n        \n    \
+      \    self.agent_dq = self.DQAgent(self.number_of_channels, self.learning_rate,\
+      \ self.gamma)\n        #sensed_ch, curr_ch, end = self.dq_env.get_init_state()\n\
       \        #print('##################################')\n        #print('ENV initial\
       \ state:')\n        #print('State: ', sensed_ch,', Current Channel: ', curr_ch)\n\
       \        #print('##################################')\n      \n\n    def work(self,\
@@ -1055,53 +1056,56 @@ blocks:
       \  #Sample and mark channels activity\n            for i in range(0,np.size(input_items,0)):\n\
       \            \t#Energy detected during time slot, mark as occupied \n      \
       \      \tif (np.mean(abs(input_items[i][:]))>self.active_threshold):\n     \
-      \       \t\tself.channels[i] = 1\n            print(self.channels,'    ', datetime.now())\
-      \   \n            #when training is done, make a decision\n            if self.done\
-      \ == True:\n            \tstate = [self.channels.astype(np.float32), self.dq_env.one_hot(self.dq_env.init_state[0],\
+      \       \t\tself.channels[i] = 1\n            for j in range (np.size(self.channels)):\
+      \ self.channels[j] = np.abs(self.channels[j]-1)#flip ones and zeros\n      \
+      \      print(self.channels,'    ', datetime.now())   \n            #when training\
+      \ is done, make a decision\n            if self.done == True:\n            \t\
+      state = [self.channels.astype(np.float32), self.dq_env.one_hot(self.channel_decision,\
       \ self.number_of_channels), 0]\n            \tself.channel_decision = self.agent_dq.choose_action(state,\
-      \ self.epsilon)\n            \tself.total_count += 1\n            \tself.total_ratio\
-      \ = (self.total_error)/self.total_count\n            \tprint('CH: ',self.channels)\n\
-      \            \ttemp = np.zeros(np.size(self.channels))\n            \ttemp[self.channel_decision]=1\n\
-      \            \tprint('DC: ',temp)\n            \tprint('count: ', self.total_count,\
-      \ ' Errors: ', self.total_error, ' ratio: ',self.total_ratio)\n         \t\n\
-      \            \tif self.channels[self.channel_decision] == 1:\n            \t\
-      \tself.collision += 1             \n            self.grid = self.make_grid(self.grid,(self.channels))\n\
-      \            self.last_datetime = datetime.now()\n            self.channels\
-      \ = np.zeros(self.number_of_channels)\n            #print(self.grid)\n     \
-      \       \n            self.grid_flag += 1\n        output_items[0][:]= self.channel_decision\
-      \      \n        if self.collision == 1:\n        \tself.total_error += 1\n\
-      \        \tself.collision = 0\n        \t#self.grid_flag = self.window_size+1\n\
-      \        \t\n\n        \t\n        #Full window sized grid\n        if (self.grid_flag\
-      \ == self.window_size+1): \n\t\t\n        \t#initialize DQN env\n        \t\
-      self.dq_env = self.DQEnv(self.number_of_channels, self.window_size, False, self.grid.T)\n\
-      \t\n\t\t# Run 200 episodes\n        \tfor i in range(200):\n               \
-      \     \n                    self.dq_env.initialize()\n                    \n\
-      \                    state = self.dq_env.get_init_state()\n                \
-      \    action = self.agent_dq.choose_action(state, self.epsilon)\n           \
-      \         reward, new_state = self.dq_env.run(action)\n\t    \n            \
-      \        self.agent_dq.insert_history(state, action, reward, new_state) # Insert\
-      \ state, action, reward, new state in history \n\t    \n                   \
-      \ # While it's not the end of the episode\n                    while new_state[2]==0\
-      \ :\n                    \tstate = new_state\n                    \taction =\
-      \ self.agent_dq.choose_action(state, self.epsilon)\n                    \treward,\
-      \ new_state = self.dq_env.run(action)\n\t\t\n                    \tself.agent_dq.insert_history(state,\
-      \ action, reward, new_state) # Insert state, action, reward, new state in history\n\
-      \        \t\n        \tself.train_flag = True                      \t\n    \
-      \    \tprint('Replay buffer History populated')\n        \t                \
-      \ \t \n\n        \t\n        \t\n\n        if self.train_flag == True:\n\t \
-      \       print('Training...')\n        \tself.train_flag = False\n        \t\n\
-      \        \tfor i in range(self.nb_trainings):\n        \t\tself.dq_env.initialize()\n\
-      \        \t\tstate = self.dq_env.get_init_state()\n    \n        \t\taction\
-      \ = self.agent_dq.choose_action(state, self.epsilon)\n        \t\treward, new_state\
-      \ = self.dq_env.run(action)\n        \t\tself.agent_dq.insert_history(state,\
+      \ 0)# epsilon = 0 only expoiltation wehn not training\n            \tself.total_count\
+      \ += 1\n            \tself.total_ratio = (self.total_error)/self.total_count\n\
+      \            \tprint('CH: ',self.channels)\n            \ttemp = np.zeros(np.size(self.channels))\n\
+      \            \ttemp[self.channel_decision]=1\n            \tprint('DC: ',temp)\n\
+      \            \tprint('count: ', self.total_count, ' Errors: ', self.total_error,\
+      \ ' ratio: ',self.total_ratio)\n         \t\n            \tif self.channels[self.channel_decision]\
+      \ == 0:\n            \t\tself.collision += 1             \n            self.grid\
+      \ = self.make_grid(self.grid,(self.channels))\n            self.last_datetime\
+      \ = datetime.now()\n            self.channels = np.zeros(self.number_of_channels)\n\
+      \            #print(self.grid)\n            \n            self.grid_flag +=\
+      \ 1\n        output_items[0][:]= self.channel_decision      \n        if self.collision\
+      \ == 1:\n        \tself.total_error += 1\n        \tself.collision = 0\n   \
+      \     \t#self.grid_flag = self.window_size+1\n        \t\n\n        \t\n   \
+      \     #Full window sized grid\n        if (self.grid_flag == self.window_size+1):\
+      \ \n\t\t\n        \t#initialize DQN env\n        \tself.dq_env = self.DQEnv(self.number_of_channels,\
+      \ self.window_size, self.initial_channel, self.grid.T)\n\t\n\t\t# Run 200 episodes\n\
+      \        \tfor i in range(2000):\n                    \n                   \
+      \ self.dq_env.initialize()\n                    \n                    state\
+      \ = self.dq_env.get_init_state()\n                    action = self.agent_dq.choose_action(state,\
+      \ self.epsilon)\n                    reward, new_state = self.dq_env.run(action)\n\
+      \t    \n                    self.agent_dq.insert_history(state, action, reward,\
+      \ new_state) # Insert state, action, reward, new state in history \n\t    \n\
+      \                    # While it's not the end of the episode\n             \
+      \       while new_state[2]==0 :\n                    \tstate = new_state\n \
+      \                   \taction = self.agent_dq.choose_action(state, self.epsilon)\n\
+      \                    \treward, new_state = self.dq_env.run(action)\n\t\t\n \
+      \                   \tself.agent_dq.insert_history(state, action, reward, new_state)\
+      \ # Insert state, action, reward, new state in history\n        \t\n       \
+      \ \tself.train_flag = True                      \t\n        \tprint('Replay\
+      \ buffer History populated')\n        \t                 \t \n\n        \t\n\
+      \        \t\n\n        if self.train_flag == True:\n\t        print('Training...')\n\
+      \t        self.evaluate_dq_agent(self.agent_dq , self.dq_env.grid)\n       \
+      \ \tself.train_flag = False\n        \t\n        \tfor i in range(self.nb_trainings):\n\
+      \        \t\tself.dq_env.initialize()\n        \t\tstate = self.dq_env.get_init_state()\n\
+      \    \n        \t\taction = self.agent_dq.choose_action(state, self.epsilon)\n\
+      \        \t\treward, new_state = self.dq_env.run(action)\n        \t\tself.agent_dq.insert_history(state,\
       \ action, reward, new_state) # Insert state, action, reward, new state in history\
-      \ \n        \t\tself.agent_dq.learn(10) # Each time we store a new history,\
+      \ \n        \t\tself.agent_dq.learn(32) # Each time we store a new history,\
       \ we perform a training on random data\n    \n        \t\t# While it's not the\
       \ end of the episode\n        \t\twhile new_state[2]==0 :\n        \t\t\tstate\
       \ = new_state\n        \t\t\taction = self.agent_dq.choose_action(state, self.epsilon)\n\
       \        \t\t\treward, new_state = self.dq_env.run(action)\n        \t\t\tself.agent_dq.insert_history(state,\
       \ action, reward, new_state) # Insert state, action, reward, new state in history\
-      \ \n        \t\t\tself.agent_dq.learn(10) # Each time we store a new history,\
+      \ \n        \t\t\tself.agent_dq.learn(32) # Each time we store a new history,\
       \ we perform a training on random data\n    \n        \t\tself.loss.append(tf.reduce_mean(self.agent_dq.loss).numpy())\
       \ #Save the losses for future visualization\n        \t\t\t#Every 10 iterations\
       \ we copy the parameters of the online DQN to the offline DQN\n        \t\t\
@@ -1109,26 +1113,26 @@ blocks:
       \t\tprint((i+1), end=', ')\n        \tself.done = True\n        \t#plt.semilogy(np.arange(len(self.loss)),\
       \ self.loss)\n        \t#plt.show()\n        \t\n        return len(output_items[0])\n\
       \        \n\n    \n    \n    class DQEnv():\n    \tdef __init__(self, nb_channels\
-      \ = 7, nb_states=5, random=False , grid = []):\n        \n\t    \tif (nb_channels+1)%2!=0:\n\
+      \ = 7, nb_states=5, initial_state = 0 , grid = []):\n        \n\t    \tif (nb_channels+1)%2!=0:\n\
       \t    \t\tprint('/!\\ Please enter an even number of channels')\n          \
       \  \n\t    \tself.nb_ch = nb_channels\n\t    \tself.nb_states = nb_states\n\
       \        \n\t    \tself.grid = grid\n\t    \tprint ('env grid:')\n\t    \tprint(self.grid)\n\
-      \t    \tself.init_state = [int((self.nb_ch-1)/2), int(self.nb_states-1)]\n\t\
-      \    \tself.ch_state = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\
+      \t    \tself.init_state = [int(initial_state), int(self.nb_states-1)]\n\t  \
+      \  \tself.ch_state = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\
       \t    \tself.sent_mess = 0\n        \n\t    \tprint('This environment has '\
       \ + str(self.nb_ch) +' different channels')\n        \n    \tdef run(self, action):\n\
       \        \n\t    \tself.sent_mess += 1\n        \n\t    \tself.ch_state  = (self.ch_state\
-      \ + 1)%self.nb_states\n        \n\t    \tself.curr_ch = (self.curr_ch + action)%self.nb_ch\n\
-      \        \n\t    \treward = np.abs(self.grid[self.curr_ch, self.ch_state]-1)\n\
-      \        \n\t    \tif self.sent_mess != self.nb_states: \n\t    \t\tend = 0\n\
-      \t    \telse :\n\t    \t\tend = 1\n        \n\t    \treturn(reward, [self.grid[:,\
-      \ self.ch_state], self.one_hot(self.curr_ch, self.nb_ch), end])\n    \n    \t\
-      def get_init_state(self):\n\t    \treturn [self.grid[:, self.init_state[1]],\
-      \ self.one_hot(self.init_state[0], self.nb_ch), 0]\n    \n    \tdef initialize(self):\n\
-      \t    \tself.ch_state = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\
-      \t    \tself.sent_mess = 0\n        \n    \tdef one_hot(self, index, depth):\n\
-      \t    \toh = np.zeros(depth, dtype=np.float32)\n\t    \toh[index] = 1\n\t  \
-      \  \treturn oh\n    \n    \n    class DQAgent():\n    \tdef __init__(self, nb_channels,\
+      \ + 1)%self.nb_states\n        \n\t    \tself.curr_ch = action\n\t    \t\n\t\
+      \    \treward = np.abs(self.grid[self.curr_ch, self.ch_state])\n        \n\t\
+      \    \tif self.sent_mess != self.nb_states: \n\t    \t\tend = 0\n\t    \telse\
+      \ :\n\t    \t\tend = 1\n        \n\t    \treturn(reward, [self.grid[:, self.ch_state],\
+      \ self.one_hot(self.curr_ch, self.nb_ch), end])\n    \n    \tdef get_init_state(self):\n\
+      \t    \treturn [self.grid[:, self.init_state[1]], self.one_hot(self.init_state[0],\
+      \ self.nb_ch), 0]\n    \n    \tdef initialize(self):\n\t    \tself.ch_state\
+      \ = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\t    \t\
+      self.sent_mess = 0\n        \n    \tdef one_hot(self, index, depth):\n\t   \
+      \ \toh = np.zeros(depth, dtype=np.float32)\n\t    \toh[index] = 1\n\t    \t\
+      return oh\n    \n    \n    class DQAgent():\n    \tdef __init__(self, nb_channels,\
       \ learning_rate, gamma):\n    \t\tself.nb_ch = nb_channels\n    \t\tself.nb_actions\
       \ = nb_channels\n    \t\tself.gamma = gamma\n    \t\tself.learning_rate = learning_rate\n\
       \    \t\t\n    \t\tself.history_length = 200\n    \t\tself.history = [[]for\
@@ -1147,28 +1151,28 @@ blocks:
       \      \n    \tdef choose_action(self, state, epsilon):\n    \t\t\"\"\"Implements\
       \ an epsilon-greedy policy\"\"\"\n        \n    \t\t# Explore ?\n    \t\tif\
       \ np.random.uniform(size=1) < epsilon :\n    \t\t\taction =  np.random.randint(low\
-      \ = 0, high = 7) ####### Take one action randomly {-1, 0, 1} with probability\
-      \ epsilon\n        \n    \t\t#Choose the best action\n    \t\telse:    \n  \
-      \  \t\t\tsensed_ch, curr_ch, end = state #Decomposes the state\n    \t\t\t'''\n\
-      \    \t\t\t* The shapes are :\n    \t\t\t- curr_ch : [self.nb_ch]\n    \t\t\t\
-      - sensed_ch : [self.nb_ch]\n    \t\t\t- end : one integer\n    \t\t\t'''\n \
-      \   \t\t\tDQN_input = tf.concat([sensed_ch, curr_ch], axis=0)[tf.newaxis, :]\
-      \ #Create a state vector, which is the DQN input. Shape : [1, 2*self.nb_ch]\n\
-      \    \t\t\toutputs = self.DQN_online(DQN_input).numpy() #Get the predicted Q\
-      \ values corresponding to the 3 actions\n    \t\t\taction = np.argmax(outputs)-1\
-      \ #Take the action that has the highest predicted Q value (-1, 0, 1)\n     \
-      \       \n    \t\treturn action\n    \n    \tdef learn(self, batch_size):\n\
-      \    \t\t\"\"\"Sample experiences from the history and performs SGD\"\"\"\n\
-      \    \t\t\n    \t\t# Samples random experiences from the history\n    \t\tidx\
-      \ = np.random.choice(range(self.history_length), batch_size, replace=False)\
-      \ # Create random indexes \n    \t\trdm_exp =  [self.history[i] for i in idx]\
-      \ # Take experiences corresponding to the random indexes\n    \t\t\n    \t\t\
-      # Each experience is written in this format : [state_vec, end, action, reward,\
-      \ n_state_vec, n_end] (see insert_history method)\n    \t\t\n    \t\t# Create\
-      \ 6 batches : states_vec, end_boolean, actions, rewards, new states_vec, new_end_boolean\n\
-      \    \t\tstates_vec = np.array([rdm_exp[i][0] for i in range(batch_size)]) #\
-      \ Shape : [Bs, 2*self.nb_ch]\n    \t\tend = np.array([rdm_exp[i][1] for i in\
-      \ range(batch_size)]) # Shape : [Bs]\n    \t\tactions = np.array([rdm_exp[i][2]\
+      \ = 0, high = 6) ####### Take one action randomly {0, 1, 2, 3, 4, 5, 6} with\
+      \ probability epsilon\n    \t\t\t\n        \n    \t\t#Choose the best action\n\
+      \    \t\telse:    \n    \t\t\tsensed_ch, curr_ch, end = state #Decomposes the\
+      \ state\n    \t\t\t'''\n    \t\t\t* The shapes are :\n    \t\t\t- curr_ch :\
+      \ [self.nb_ch]\n    \t\t\t- sensed_ch : [self.nb_ch]\n    \t\t\t- end : one\
+      \ integer\n    \t\t\t'''\n    \t\t\tDQN_input = tf.concat([sensed_ch, curr_ch],\
+      \ axis=0)[tf.newaxis, :] #Create a state vector, which is the DQN input. Shape\
+      \ : [1, 2*self.nb_ch]\n    \t\t\toutputs = self.DQN_online(DQN_input).numpy()\
+      \ #Get the predicted Q values corresponding to the 3 actions\n    \t\t\taction\
+      \ = np.argmax(outputs)#-1 #Take the action that has the highest predicted Q\
+      \ value (0, 1, 2, 3, 4, 5, 6)\n    \t\t\t#print(outputs)\n    \t\treturn action\n\
+      \    \n    \tdef learn(self, batch_size):\n    \t\t\"\"\"Sample experiences\
+      \ from the history and performs SGD\"\"\"\n    \t\t\n    \t\t# Samples random\
+      \ experiences from the history\n    \t\tidx = np.random.choice(range(self.history_length),\
+      \ batch_size, replace=False) # Create random indexes \n    \t\trdm_exp =  [self.history[i]\
+      \ for i in idx] # Take experiences corresponding to the random indexes\n   \
+      \ \t\t\n    \t\t# Each experience is written in this format : [state_vec, end,\
+      \ action, reward, n_state_vec, n_end] (see insert_history method)\n    \t\t\n\
+      \    \t\t# Create 6 batches : states_vec, end_boolean, actions, rewards, new\
+      \ states_vec, new_end_boolean\n    \t\tstates_vec = np.array([rdm_exp[i][0]\
+      \ for i in range(batch_size)]) # Shape : [Bs, 2*self.nb_ch]\n    \t\tend = np.array([rdm_exp[i][1]\
+      \ for i in range(batch_size)]) # Shape : [Bs]\n    \t\tactions = np.array([rdm_exp[i][2]\
       \ for i in range(batch_size)]) # Shape : [BS]\n    \t\trewards = np.array([rdm_exp[i][3]\
       \ for i in range(batch_size)]) # Shape : [BS]\n    \t\tn_states_vec = np.array([rdm_exp[i][4]\
       \ for i in range(batch_size)]) # Shape : [Bs, 2*self.nb_ch]\n    \t\tn_end =\
@@ -1198,12 +1202,27 @@ blocks:
       \n\t\t\n\n    def make_grid(self,grid,channels):\n        grid = np.append(grid,\
       \ channels).reshape(self.window_size+1,7)\n        grid = np.delete(grid, 0,\
       \ 0)\n        grid = grid.reshape(self.window_size,self.number_of_channels)\n\
-      \        return grid.astype(np.float32)\n"
+      \        return grid.astype(np.float32)\n    \n    def evaluate_dq_agent(self,\
+      \ agent, grid):\n\n        action_history=[]\n        tot_reward = 0\n    \n\
+      \        self.dq_env.initialize()\n        first_state = self.dq_env.get_init_state()\n\
+      \        action = agent.choose_action(first_state, epsilon = 0)\n        action_history.append(action)\n\
+      \        reward, new_state = self.dq_env.run(action)\n        tot_reward +=\
+      \ reward\n    \n        for j in range(grid.shape[1]-1):\n            state\
+      \ = new_state\n            action = agent.choose_action(state, epsilon = 0)\n\
+      \            action_history.append(action)\n            reward, new_state =\
+      \ self.dq_env.run(action)\n            tot_reward += reward\n            \n\
+      \        choosen_channels = [(grid.shape[0]-1)/2]\n        for i in range(len(action_history)):\n\
+      \        \tchoosen_channels.append((choosen_channels[i]+action_history[i])%grid.shape[0])\n\
+      \        choosen_channels = choosen_channels[1:]\n        plt.imshow(np.flip(grid,\
+      \ axis=0), origin=\"lower\", cmap='gray', vmin=0, vmax=1)\n        for i in\
+      \ range(len(choosen_channels)):\n        \tplt.scatter(i, grid.shape[0]-1-choosen_channels[i],\
+      \ color='r')\n        print(str(int(tot_reward))+'/'+str(grid.shape[1])+' packets\
+      \ have been transmitted')\n        return tot_reward\n"
     active_threshold: '0.9'
     affinity: ''
     alias: ''
     comment: ''
-    epsilon: '1'
+    epsilon: '0.75'
     gamma: '1'
     initial_channel: '6'
     learning_rate: '0.01'
@@ -1213,7 +1232,7 @@ blocks:
     number_of_channels: '7'
     seed: '1'
     slot_time: '1'
-    window_size: '128'
+    window_size: '30'
   states:
     _io_cache: ('RL Channels select self agent', 'blk', [('number_of_channels', '7'),
       ('seed', '0'), ('num_GPU', '0.0'), ('active_threshold', '0.9'), ('slot_time',
@@ -1324,7 +1343,7 @@ blocks:
     alpha5: '1.0'
     alpha6: '1.0'
     alpha7: '1.0'
-    alpha8: '3'
+    alpha8: '10.0'
     alpha9: '1.0'
     autoscale: 'False'
     average: '1.0'
