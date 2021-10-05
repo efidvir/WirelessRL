@@ -1012,10 +1012,10 @@ blocks:
       \ import Dense\n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\
       \n\nfrom matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
       \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
-      \ QtWidgets\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
-      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
-      \ multiply const\"\"\"\n\n    def __init__(self,number_of_channels=7,seed =\
-      \ 0, num_GPU=0.0, active_threshold= 0.9, slot_time = 1, window_size = 5, initial_channel\
+      \ QtWidgets\nHISTORY_BUFFER_LEN = 2000\n\nclass blk(gr.sync_block):  # other\
+      \ base classes are basic_block, decim_block, interp_block\n    \"\"\"Embedded\
+      \ Python Block example - a simple multiply const\"\"\"\n\n    def __init__(self,number_of_channels=7,seed\
+      \ = 0, num_GPU=0.0, active_threshold= 0.9, slot_time = 1, window_size = 5, initial_channel\
       \ = 0, gamma = 1, learning_rate = 0.01, epsilon = 1):  # only default arguments\
       \ here\n        \"\"\"arguments to this function show up as parameters in GRC\"\
       \"\"\n        gr.sync_block.__init__(\n            self,\n            name='RL\
@@ -1077,15 +1077,15 @@ blocks:
       \     #Full window sized grid\n        if (self.grid_flag == self.window_size+1):\
       \ \n\t\t\n        \t#initialize DQN env\n        \tself.dq_env = self.DQEnv(self.number_of_channels,\
       \ self.window_size, self.initial_channel, self.grid.T)\n\t\n\t\t# Run 200 episodes\n\
-      \        \tfor i in range(2000):\n                    \n                   \
-      \ self.dq_env.initialize()\n                    \n                    state\
-      \ = self.dq_env.get_init_state()\n                    action = self.agent_dq.choose_action(state,\
-      \ self.epsilon)\n                    reward, new_state = self.dq_env.run(action)\n\
-      \t    \n                    self.agent_dq.insert_history(state, action, reward,\
-      \ new_state) # Insert state, action, reward, new state in history \n\t    \n\
-      \                    # While it's not the end of the episode\n             \
-      \       while new_state[2]==0 :\n                    \tstate = new_state\n \
-      \                   \taction = self.agent_dq.choose_action(state, self.epsilon)\n\
+      \        \tfor i in range(HISTORY_BUFFER_LEN):\n                    \n     \
+      \               self.dq_env.initialize()\n                    \n           \
+      \         state = self.dq_env.get_init_state()\n                    action =\
+      \ self.agent_dq.choose_action(state, self.epsilon)\n                    reward,\
+      \ new_state = self.dq_env.run(action)\n\t    \n                    self.agent_dq.insert_history(state,\
+      \ action, reward, new_state) # Insert state, action, reward, new state in history\
+      \ \n\t    \n                    # While it's not the end of the episode\n  \
+      \                  while new_state[2]==0 :\n                    \tstate = new_state\n\
+      \                    \taction = self.agent_dq.choose_action(state, self.epsilon)\n\
       \                    \treward, new_state = self.dq_env.run(action)\n\t\t\n \
       \                   \tself.agent_dq.insert_history(state, action, reward, new_state)\
       \ # Insert state, action, reward, new state in history\n        \t\n       \
@@ -1222,7 +1222,7 @@ blocks:
     alias: ''
     comment: ''
     epsilon: '0.2'
-    gamma: '0.9'
+    gamma: '0.7'
     initial_channel: '0'
     learning_rate: '0.01'
     maxoutbuf: '0'
@@ -1489,9 +1489,9 @@ blocks:
     alpha9: '1.0'
     axislabels: 'True'
     bw: samp_rate
-    color1: '3'
+    color1: '0'
     color10: '0'
-    color2: '2'
+    color2: '6'
     color3: '0'
     color4: '0'
     color5: '0'
@@ -1505,8 +1505,8 @@ blocks:
     freqhalf: 'True'
     grid: 'True'
     gui_hint: ''
-    int_max: '10'
-    int_min: '-140'
+    int_max: '1'
+    int_min: '-200'
     label1: ''
     label10: ''
     label2: ''
