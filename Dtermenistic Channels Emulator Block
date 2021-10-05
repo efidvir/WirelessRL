@@ -1,0 +1,74 @@
+"""
+Embedded Python Blocks:
+
+Each time this file is saved, GRC will instantiate the first class it finds
+to get ports and parameters of your block. The arguments to __init__  will
+be the parameters. All of them are required to have default values!
+"""
+
+
+import numpy as np
+import time
+import schedule
+import threading
+from datetime import datetime, timedelta
+from timeslot import Timeslot
+from gnuradio import gr
+
+class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
+    """Embedded Python Block example - a simple multiply const"""
+    def __init__(self, example_param=1.0, poisson_lambda=5.0, interval = 32000):  #change to numpy array size of inputs. only default arguments here
+        """arguments to this function show up as parameters in GRC"""
+        gr.sync_block.__init__(
+            self,
+            name='Channels emulator',   # will show up in GRC
+            in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],
+            out_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64]
+        )
+        # if an attribute with the same name as a parameter is found,
+        # a callback is registered (properties work, too).
+        self.example_param = example_param
+        self.poisson_lambda = poisson_lambda
+        stop_run_continuously = self.run_continuously() # enable therding for scheduler
+        self.interval = interval
+        self.active = [False,False,False,False,False,False,False]
+        self.channels = [0,0,0,0,0,0,0]#cahnge to size of inputs
+        for j in range(0,len(self.channels)): #cahnge to synchronus
+        	self.channels[j] = datetime.now()
+	
+    def work(self, input_items, output_items):
+        """example: multiply with constant"""
+        for i in range(0,np.size(input_items,0)):
+        	if datetime.now() - self.channels[i] > (i+1)*timedelta(days=0, seconds=1, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):  #if time passed
+        		#print(self.active)
+        		if self.active[i] == True:
+        			self.active[i] = False
+        		else: 
+	        		self.active[i] = True
+        		self.channels[i] = datetime.now() 
+        	if self.active[i] == True:
+        		self.turnon(i,input_items, output_items)
+        	else:
+        		self.turnoff(i,input_items, output_items)
+        		
+        			
+        	
+        return len(output_items[0])
+	
+    def turnon(self,i, input_items, output_items):
+    	output_items[i][:] = input_items[i] 
+    	
+    def turnoff(self,i, input_items, output_items):
+    	output_items[i][:] = input_items[i] * 0
+    	
+    def run_continuously(interval=1):
+    	cease_continuous_run = threading.Event()
+
+    	class ScheduleThread(threading.Thread):
+    	    def run(cls):
+	            while not cease_continuous_run.is_set():
+                        schedule.run_pending()
+                        time.sleep(interval)
+    	continuous_thread = ScheduleThread()
+    	continuous_thread.start()
+    	return cease_continuous_run
