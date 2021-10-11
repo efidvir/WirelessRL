@@ -744,6 +744,73 @@ blocks:
     coordinate: [478, 608]
     rotation: 0
     state: disabled
+- name: epy_block_1_1
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\n\nimport numpy as np\n\
+      import time\nimport schedule\nimport threading\nfrom datetime import datetime,\
+      \ timedelta\nfrom timeslot import Timeslot\nfrom gnuradio import gr\n\nclass\
+      \ blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block\n\
+      \    \"\"\"Embedded Python Block example - a simple multiply const\"\"\"\n \
+      \   def __init__(self, example_param=1.0, poisson_lambda=5.0, interval = 32000):\
+      \  #change to numpy array size of inputs. only default arguments here\n    \
+      \    \"\"\"arguments to this function show up as parameters in GRC\"\"\"\n \
+      \       gr.sync_block.__init__(\n            self,\n            name='Channels\
+      \ emulator',   # will show up in GRC\n            in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
+      \            out_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        self.mus\
+      \ = []\n        self.example_param = example_param\n        self.poisson_lambda\
+      \ = poisson_lambda\n        stop_run_continuously = self.run_continuously()\
+      \ # enable therding for scheduler\n        self.interval = interval\n      \
+      \  self.active = [False,False,False,False,False,False,False]\n        self.channels\
+      \ = [0,0,0,0,0,0,0]#cahnge to size of inputs\n        for j in range(0,len(self.channels)):\
+      \ #cahnge to synchronus\n        \tself.channels[j] = datetime.now()\n     \
+      \   \tself.mus = np.append(self.mus, np.random.exponential(scale = j))\n   \
+      \     print (self.mus)        \t\n        \n    def work(self, input_items,\
+      \ output_items):\n        \"\"\"example: multiply with constant\"\"\"\n    \
+      \    for i in range(0,np.size(input_items,0)):\n        \t\n        \tif datetime.now()\
+      \ - self.channels[i] > timedelta(days=0, seconds=self.mus[i], microseconds=0,\
+      \ milliseconds=0, minutes=0, hours=0, weeks=0):  #if time passed\n        \t\
+      \t#print(self.active)\n        \t\tif self.active[i] == True:\n        \t\t\t\
+      self.active[i] = False\n        \t\telse: \n\t        \t\tself.active[i] = True\n\
+      \        \t\tself.channels[i] = datetime.now() \n        \tif self.active[i]\
+      \ == True:\n        \t\tself.turnon(i,input_items, output_items)\n        \t\
+      else:\n        \t\tself.turnoff(i,input_items, output_items)\n        \t\t\n\
+      \        \t\t\t\n        \t\n        return len(output_items[0])\n\t\n    def\
+      \ turnon(self,i, input_items, output_items):\n    \toutput_items[i][:] = input_items[i]\
+      \ \n    \t\n    def turnoff(self,i, input_items, output_items):\n    \toutput_items[i][:]\
+      \ = input_items[i] * 0\n    \t\n    def run_continuously(interval=1):\n    \t\
+      cease_continuous_run = threading.Event()\n\n    \tclass ScheduleThread(threading.Thread):\n\
+      \    \t    def run(cls):\n\t            while not cease_continuous_run.is_set():\n\
+      \                        schedule.run_pending()\n                        time.sleep(interval)\n\
+      \    \tcontinuous_thread = ScheduleThread()\n    \tcontinuous_thread.start()\n\
+      \    \treturn cease_continuous_run\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    example_param: '1.0'
+    interval: samp_rate
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    poisson_lambda: '1.0'
+  states:
+    _io_cache: ('Channels emulator', 'blk', [('example_param', '1.0'), ('poisson_lambda',
+      '5.0'), ('interval', '32000')], [('0', 'complex', 1), ('1', 'complex', 1), ('2',
+      'complex', 1), ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1),
+      ('6', 'complex', 1)], [('0', 'complex', 1), ('1', 'complex', 1), ('2', 'complex',
+      1), ('3', 'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1), ('6', 'complex',
+      1)], 'Embedded Python Block example - a simple multiply const', ['example_param',
+      'interval', 'poisson_lambda'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [473, 38]
+    rotation: 0
+    state: disabled
 - name: epy_block_2
   id: epy_block
   parameters:
@@ -1042,7 +1109,7 @@ blocks:
       \ self.window_size, False, self.grid.T)\n\n        #initialize DQN Neural Network\n\
       \        self.gamma = gamma\n        self.learning_rate = learning_rate\n  \
       \      self.actions_number = self.number_of_channels\n        self.epsilon =\
-      \ epsilon\n        self.nb_trainings = 400\n        self.loss = []  # Keep trak\
+      \ epsilon\n        self.nb_trainings = 300\n        self.loss = []  # Keep trak\
       \ of the losses\n        self.channel_decision = self.initial_channel\n    \
       \    self.train_flag = False\n        self.done = False\n        \n        self.agent_dq\
       \ = self.DQAgent(self.number_of_channels, self.learning_rate, self.gamma)\n\
@@ -1134,11 +1201,11 @@ blocks:
       return oh\n    \n    \n    class DQAgent():\n    \tdef __init__(self, nb_channels,\
       \ learning_rate, gamma):\n    \t\tself.nb_ch = nb_channels\n    \t\tself.nb_actions\
       \ = nb_channels\n    \t\tself.gamma = gamma\n    \t\tself.learning_rate = learning_rate\n\
-      \    \t\t\n    \t\tself.history_length = 2000\n    \t\tself.history = [[]for\
-      \ i in range(self.history_length)]\n    \t\tself.history_idx = 0\n    \t\t\n\
-      \    \t\t#Create and initialize the online DQN\n    \t\tself.DQN_online = tf.keras.models.Sequential([Dense(2*self.nb_ch,\
-      \ activation='relu'), Dense(self.nb_actions, activation='softplus') #Outputs\
-      \ positive values \n    \t\t])\n    \t\tself.DQN_online.build(input_shape=(None,\
+      \    \t\t\n    \t\tself.history_length = HISTORY_BUFFER_LEN\n    \t\tself.history\
+      \ = [[]for i in range(self.history_length)]\n    \t\tself.history_idx = 0\n\
+      \    \t\t\n    \t\t#Create and initialize the online DQN\n    \t\tself.DQN_online\
+      \ = tf.keras.models.Sequential([Dense(2*self.nb_ch, activation='relu'), Dense(self.nb_actions,\
+      \ activation='softplus') #Outputs positive values \n    \t\t])\n    \t\tself.DQN_online.build(input_shape=(None,\
       \ self.nb_ch*2)) #Build the model to create the weights\n    \t\t\n    \t\t\
       #Create and initialize the offline DQN\n    \t\tself.DQN_offline = tf.keras.models.Sequential([Dense(2*self.nb_ch,\
       \ activation='relu'), Dense(self.nb_actions, activation='softplus') #Outputs\
@@ -1148,23 +1215,24 @@ blocks:
       \ network\n    \t\t\n    \t\tself.loss_func = tf.keras.losses.MSE\n    \t\t\
       self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)\n        \n  \
       \      \n    \tdef choose_action(self, state, epsilon):\n    \t\t\"\"\"Implements\
-      \ an epsilon-greedy policy\"\"\"\n        \n    \t\t# Explore ?\n    \t\tif\
-      \ np.random.uniform(size=1) < epsilon :\n    \t\t\taction =  np.random.randint(low\
-      \ = 0, high = 6) ####### Take one action randomly {0, 1, 2, 3, 4, 5, 6} with\
-      \ probability epsilon\n    \t\t\t\n        \n    \t\t#Choose the best action\n\
-      \    \t\telse:    \n    \t\t\tsensed_ch, curr_ch, end = state #Decomposes the\
-      \ state\n    \t\t\t'''\n    \t\t\t* The shapes are :\n    \t\t\t- curr_ch :\
-      \ [self.nb_ch]\n    \t\t\t- sensed_ch : [self.nb_ch]\n    \t\t\t- end : one\
-      \ integer\n    \t\t\t'''\n    \t\t\tDQN_input = tf.concat([sensed_ch, curr_ch],\
-      \ axis=0)[tf.newaxis, :] #Create a state vector, which is the DQN input. Shape\
-      \ : [1, 2*self.nb_ch]\n    \t\t\toutputs = self.DQN_online(DQN_input).numpy()\
-      \ #Get the predicted Q values corresponding to the 3 actions\n    \t\t\taction\
-      \ = np.argmax(outputs)#-1 #Take the action that has the highest predicted Q\
-      \ value (0, 1, 2, 3, 4, 5, 6)\n    \t\t\t#print(outputs)\n    \t\treturn action\n\
-      \    \n    \tdef learn(self, batch_size):\n    \t\t\"\"\"Sample experiences\
-      \ from the history and performs SGD\"\"\"\n    \t\t\n    \t\t# Samples random\
-      \ experiences from the history\n    \t\tidx = np.random.choice(range(self.history_length),\
-      \ batch_size, replace=False) # Create random indexes \n    \t\trdm_exp =  [self.history[i]\
+      \ an epsilon-greedy policy\"\"\"\n    \t\tsensed_ch, curr_ch, end = state\n\
+      \    \t\t# Explore ?\n    \t\tif np.random.uniform(size=1) < epsilon :\n   \
+      \ \t\t\taction =  np.random.randint(low = 0, high = np.size(sensed_ch)) #######\
+      \ Take one action randomly {0, 1, 2, 3, 4, 5, 6} with probability epsilon\n\
+      \    \t\t\t\n        \n    \t\t#Choose the best action\n    \t\telse:    \n\
+      \    \t\t\t#sensed_ch, curr_ch, end = state #Decomposes the state\n    \t\t\t\
+      '''\n    \t\t\t* The shapes are :\n    \t\t\t- curr_ch : [self.nb_ch]\n    \t\
+      \t\t- sensed_ch : [self.nb_ch]\n    \t\t\t- end : one integer\n    \t\t\t'''\n\
+      \    \t\t\tDQN_input = tf.concat([sensed_ch, curr_ch], axis=0)[tf.newaxis, :]\
+      \ #Create a state vector, which is the DQN input. Shape : [1, 2*self.nb_ch]\n\
+      \    \t\t\toutputs = self.DQN_online(DQN_input).numpy() #Get the predicted Q\
+      \ values corresponding to the 3 actions\n    \t\t\taction = np.argmax(outputs)#-1\
+      \ #Take the action that has the highest predicted Q value (0, 1, 2, 3, 4, 5,\
+      \ 6)\t\t\t\n    \t\t\t#print(outputs)\n    \t\treturn action\n    \n    \tdef\
+      \ learn(self, batch_size):\n    \t\t\"\"\"Sample experiences from the history\
+      \ and performs SGD\"\"\"\n    \t\t\n    \t\t# Samples random experiences from\
+      \ the history\n    \t\tidx = np.random.choice(range(self.history_length), batch_size,\
+      \ replace=False) # Create random indexes \n    \t\trdm_exp =  [self.history[i]\
       \ for i in idx] # Take experiences corresponding to the random indexes\n   \
       \ \t\t\n    \t\t# Each experience is written in this format : [state_vec, end,\
       \ action, reward, n_state_vec, n_end] (see insert_history method)\n    \t\t\n\
@@ -1221,8 +1289,8 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    epsilon: '0.2'
-    gamma: '0.7'
+    epsilon: '0.25'
+    gamma: '0.6'
     initial_channel: '0'
     learning_rate: '0.01'
     maxoutbuf: '0'
@@ -1244,7 +1312,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1373, 901]
+    coordinate: [1374, 901]
     rotation: 0
     state: enabled
 - name: epy_block_4
@@ -1302,7 +1370,7 @@ blocks:
     bus_structure: null
     coordinate: [466, 558]
     rotation: 0
-    state: true
+    state: enabled
 - name: note_0_0
   id: note
   parameters:
@@ -1314,6 +1382,19 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [470, 838]
+    rotation: 0
+    state: disabled
+- name: note_0_1
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: Exponential intervals
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [459, 272]
     rotation: 0
     state: disabled
 - name: note_1
@@ -1571,24 +1652,31 @@ blocks:
 connections:
 - [analog_sig_source_x_0, '0', epy_block_1, '0']
 - [analog_sig_source_x_0, '0', epy_block_1_0, '0']
+- [analog_sig_source_x_0, '0', epy_block_1_1, '0']
 - [analog_sig_source_x_0, '0', epy_block_4, '0']
 - [analog_sig_source_x_0_0, '0', epy_block_1, '1']
 - [analog_sig_source_x_0_0, '0', epy_block_1_0, '1']
+- [analog_sig_source_x_0_0, '0', epy_block_1_1, '1']
 - [analog_sig_source_x_0_0, '0', epy_block_4, '1']
 - [analog_sig_source_x_0_0_0, '0', epy_block_1, '2']
 - [analog_sig_source_x_0_0_0, '0', epy_block_1_0, '2']
+- [analog_sig_source_x_0_0_0, '0', epy_block_1_1, '2']
 - [analog_sig_source_x_0_0_0, '0', epy_block_4, '2']
 - [analog_sig_source_x_0_0_0_0, '0', epy_block_1, '3']
 - [analog_sig_source_x_0_0_0_0, '0', epy_block_1_0, '3']
+- [analog_sig_source_x_0_0_0_0, '0', epy_block_1_1, '3']
 - [analog_sig_source_x_0_0_0_0, '0', epy_block_4, '3']
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1, '4']
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1_0, '4']
+- [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1_1, '4']
+- [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1_1, '5']
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_4, '4']
 - [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_1, '5']
 - [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_1_0, '5']
 - [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_4, '5']
 - [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_1, '6']
 - [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_1_0, '6']
+- [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_1_1, '6']
 - [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_4, '6']
 - [blocks_add_xx_0_0_0_0_0_0_0_0, '0', qtgui_waterfall_sink_x_0, '0']
 - [channels_channel_model_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '0']
@@ -1644,6 +1732,13 @@ connections:
 - [epy_block_1_0, '4', channels_channel_model_0_0_0_0_0, '0']
 - [epy_block_1_0, '5', channels_channel_model_0_0_0_0_0_0, '0']
 - [epy_block_1_0, '6', channels_channel_model_0_0_0_0_0_0_0, '0']
+- [epy_block_1_1, '0', channels_channel_model_0, '0']
+- [epy_block_1_1, '1', channels_channel_model_0_0, '0']
+- [epy_block_1_1, '2', channels_channel_model_0_0_0, '0']
+- [epy_block_1_1, '3', channels_channel_model_0_0_0_0, '0']
+- [epy_block_1_1, '4', channels_channel_model_0_0_0_0_0, '0']
+- [epy_block_1_1, '5', channels_channel_model_0_0_0_0_0_0, '0']
+- [epy_block_1_1, '6', channels_channel_model_0_0_0_0_0_0_0, '0']
 - [epy_block_2, '0', blocks_null_sink_0, '0']
 - [epy_block_3, '0', qtgui_number_sink_0, '0']
 - [epy_block_3_0, '0', epy_block_4, '7']
