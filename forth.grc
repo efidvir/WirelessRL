@@ -681,7 +681,7 @@ blocks:
     bus_structure: null
     coordinate: [473, 328]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: epy_block_1_0
   id: epy_block
   parameters:
@@ -769,8 +769,8 @@ blocks:
       \  self.active = [False,False,False,False,False,False,False]\n        self.channels\
       \ = [0,0,0,0,0,0,0]#cahnge to size of inputs\n        for j in range(0,len(self.channels)):\
       \ #cahnge to synchronus\n        \tself.channels[j] = datetime.now()\n     \
-      \   \tself.mus = np.append(self.mus, np.random.exponential(scale = j))\n   \
-      \     print (self.mus)        \t\n        \n    def work(self, input_items,\
+      \   \tself.mus = np.append(self.mus, 1+int(np.random.exponential(scale = j)))\n\
+      \        print (self.mus)        \t\n        \n    def work(self, input_items,\
       \ output_items):\n        \"\"\"example: multiply with constant\"\"\"\n    \
       \    for i in range(0,np.size(input_items,0)):\n        \t\n        \tif datetime.now()\
       \ - self.channels[i] > timedelta(days=0, seconds=self.mus[i], microseconds=0,\
@@ -808,9 +808,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [473, 38]
+    coordinate: [476, 26]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: epy_block_2
   id: epy_block
   parameters:
@@ -1280,10 +1280,10 @@ blocks:
       \ self.dq_env.run(action)\n            tot_reward += reward\n            \n\
       \        choosen_channels = [(grid.shape[0]-1)/2]\n        for i in range(len(action_history)):\n\
       \        \tchoosen_channels.append((choosen_channels[i]+action_history[i])%grid.shape[0])\n\
-      \        choosen_channels = choosen_channels[1:]\n        #plt.imshow(np.flip(grid,\
-      \ axis=0), origin=\"lower\", cmap='gray', vmin=0, vmax=1)\n        #for i in\
-      \ range(len(choosen_channels)):\n        #\tplt.scatter(i, grid.shape[0]-1-choosen_channels[i],\
-      \ color='r')\n       # plt.show()\n        print(str(int(tot_reward))+'/'+str(grid.shape[1])+'\
+      \        choosen_channels = choosen_channels[1:]\n        plt.imshow(np.flip(grid,\
+      \ axis=0), origin=\"lower\", cmap='gray', vmin=0, vmax=1)\n        for i in\
+      \ range(len(choosen_channels)):\n        \tplt.scatter(i, grid.shape[0]-1-choosen_channels[i],\
+      \ color='r')\n        plt.show()\n        print(str(int(tot_reward))+'/'+str(grid.shape[1])+'\
       \ packets have been transmitted')\n        return tot_reward\n"
     active_threshold: '0.9'
     affinity: ''
@@ -1299,7 +1299,7 @@ blocks:
     number_of_channels: '7'
     seed: '1'
     slot_time: '1'
-    window_size: '256'
+    window_size: '128'
   states:
     _io_cache: ('RL Channels select self agent', 'blk', [('number_of_channels', '7'),
       ('seed', '0'), ('num_GPU', '0.0'), ('active_threshold', '0.9'), ('slot_time',
@@ -1669,10 +1669,10 @@ connections:
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1, '4']
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1_0, '4']
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1_1, '4']
-- [analog_sig_source_x_0_0_0_0_0, '0', epy_block_1_1, '5']
 - [analog_sig_source_x_0_0_0_0_0, '0', epy_block_4, '4']
 - [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_1, '5']
 - [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_1_0, '5']
+- [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_1_1, '5']
 - [analog_sig_source_x_0_0_0_0_0_0, '0', epy_block_4, '5']
 - [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_1, '6']
 - [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_1_0, '6']
