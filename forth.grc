@@ -776,13 +776,14 @@ blocks:
       \ - self.channels[i] > timedelta(days=0, seconds=self.mus[i], microseconds=0,\
       \ milliseconds=0, minutes=0, hours=0, weeks=0):  #if time passed\n        \t\
       \t#print(self.active)\n        \t\tif self.active[i] == True:\n        \t\t\t\
-      self.active[i] = False\n        \t\telse: \n\t        \t\tself.active[i] = True\n\
-      \        \t\tself.channels[i] = datetime.now() \n        \tif self.active[i]\
-      \ == True:\n        \t\tself.turnon(i,input_items, output_items)\n        \t\
-      else:\n        \t\tself.turnoff(i,input_items, output_items)\n        \t\t\n\
-      \        \t\t\t\n        \t\n        return len(output_items[0])\n\t\n    def\
-      \ turnon(self,i, input_items, output_items):\n    \toutput_items[i][:] = input_items[i]\
-      \ \n    \t\n    def turnoff(self,i, input_items, output_items):\n    \toutput_items[i][:]\
+      if 1 + np.random.exponential(scale = i) > i:\n        \t\t\t\tself.active[i]\
+      \ = False\n        \t\telse: \n\t        \t\tself.active[i] = True\n       \
+      \ \t\tself.channels[i] = datetime.now() \n        \tif self.active[i] == True:\n\
+      \        \t\tself.turnon(i,input_items, output_items)\n        \telse:\n   \
+      \     \t\tself.turnoff(i,input_items, output_items)\n        \t\t\n        \t\
+      \t\t\n        \t\n        return len(output_items[0])\n\t\n    def turnon(self,i,\
+      \ input_items, output_items):\n    \toutput_items[i][:] = input_items[i] \n\
+      \    \t\n    def turnoff(self,i, input_items, output_items):\n    \toutput_items[i][:]\
       \ = input_items[i] * 0\n    \t\n    def run_continuously(interval=1):\n    \t\
       cease_continuous_run = threading.Event()\n\n    \tclass ScheduleThread(threading.Thread):\n\
       \    \t    def run(cls):\n\t            while not cease_continuous_run.is_set():\n\
@@ -808,7 +809,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [476, 26]
+    coordinate: [476, 23]
     rotation: 0
     state: enabled
 - name: epy_block_2
@@ -1312,7 +1313,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1374, 901]
+    coordinate: [1373, 902]
     rotation: 0
     state: enabled
 - name: epy_block_4
