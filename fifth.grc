@@ -397,23 +397,24 @@ blocks:
       \ import groupby\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
       \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
       from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
-      \ import Dense\nfrom tensorflow.keras import Sequential\nimport pandas as pd\
-      \  \n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\n\nfrom matplotlib.backends.backend_qt5agg\
-      \ import FigureCanvasQTAgg\nfrom matplotlib.figure import Figure\nfrom PyQt5\
-      \ import QtCore #conda install pyqt\nfrom PyQt5 import QtWidgets\n\n\nclass\
-      \ blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block\n\
-      \    \"\"\"Embedded Python Block example - a simple multiply const\"\"\"\n\n\
-      \    def __init__(self,seed = 0, number_of_GPUs = 1, window_size=10,look_ahead\
-      \ = 10, slot_time = 1, active_threshold= 0.9):  # only default arguments here\n\
-      \        gr.sync_block.__init__(\n            self,\n            name='Channle\
-      \ idle prediction',   # will show up in GRC\n            in_sig=[np.complex64],\n\
-      \            out_sig=[np.uint16]\n        )\n        # if an attribute with\
-      \ the same name as a parameter is found,\n        # a callback is registered\
-      \ (properties work, too).\n        \n        #initailize tensorflow and GPU\
-      \ usage\n        print('Tensorflow version: ', tf.__version__)\n        gpus\
-      \ = tf.config.experimental.list_physical_devices(\"GPU\")\n        print('Number\
-      \ of GPUs available :', len(gpus)) \n        num_GPU = number_of_GPUs\n    \
-      \    if num_GPU < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
+      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom sklearn.model_selection\
+      \ import train_test_split\nfrom sklearn.preprocessing import LabelEncoder\n\
+      import pandas as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete,\
+      \ Box\n\n\nfrom matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\n\
+      from matplotlib.figure import Figure\nfrom PyQt5 import QtCore #conda install\
+      \ pyqt\nfrom PyQt5 import QtWidgets\n\n\nclass blk(gr.sync_block):  # other\
+      \ base classes are basic_block, decim_block, interp_block\n    \"\"\"Embedded\
+      \ Python Block example - a simple multiply const\"\"\"\n\n    def __init__(self,seed\
+      \ = 0, number_of_GPUs = 1, window_size=10,look_ahead = 10, slot_time = 1, active_threshold=\
+      \ 0.9):  # only default arguments here\n        gr.sync_block.__init__(\n  \
+      \          self,\n            name='Channle idle prediction',   # will show\
+      \ up in GRC\n            in_sig=[np.complex64],\n            out_sig=[np.uint16]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        \n    \
+      \    #initailize tensorflow and GPU usage\n        print('Tensorflow version:\
+      \ ', tf.__version__)\n        gpus = tf.config.experimental.list_physical_devices(\"\
+      GPU\")\n        print('Number of GPUs available :', len(gpus)) \n        num_GPU\
+      \ = number_of_GPUs\n        if num_GPU < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
       \ 'GPU')\n        \ttf.config.experimental.set_memory_growth(gpus[num_GPU],\
       \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
       \        \n        self.active_threshold = active_threshold\n        \n    \
@@ -427,11 +428,12 @@ blocks:
       \ = 0\n        self.idel_count = 0\n        self.data = []\n        self.data_set_full\
       \ = False\n        self.idles = []\n        \n        #df data set\n       \
       \ self.inputs = []\n        self.labels = []\n        #self.data_set = pd.DataFrame\n\
-      \n    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
-      \ with constant\"\"\"\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
-      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
-      \ weeks=0):\n        \tself.last_datetime = datetime.now()\n        \t\n   \
-      \     \t#collect slot history if channel is idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
+      \        self.train = True\n\n    def work(self, input_items, output_items):\n\
+      \        \"\"\"example: multiply with constant\"\"\"\n        if (datetime.now()\
+      \ - self.last_datetime) > timedelta(days=0, seconds=self.slot_time, microseconds=0,\
+      \ milliseconds=0, minutes=0, hours=0, weeks=0):\n        \tself.last_datetime\
+      \ = datetime.now()\n        \t\n        \t#collect slot history if channel is\
+      \ idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
       \        \t\tself.data.append(1)\n        \t\t#fifo add upto window size. when\
       \ idle, flag it,count untill occupied again and paste lable.\n        \telse:\n\
       \        \t\tself.data.append(0)\n        \t\n        \t\n        \tif self.window_full\
@@ -443,18 +445,18 @@ blocks:
       \        \t\tself.idel_count = i \n        \t\t#[sum(1 for i in g) for k,g in\
       \ groupby(self.data[self.window_size:]) if k==0]\n        \t\t#self.actives\
       \ = [sum(1 for i in g) for k,g in groupby(self.data[self.window_size:]) if k==1]\n\
-      \        \t\tprint(self.idles)\n\n        \t\tprint('input: ', self.data[:self.window_size])\n\
-      \        \t\tprint('lookahead: ', self.data[self.window_size:])\n        \t\t\
-      self.inputs.append(self.data[:self.window_size])\n        \t\tprint('idle: ',\
-      \ self.idel_count)\n        \t\tself.labels.append(self.idel_count)\t###########CHECK\
+      \        \t\t#print(self.idles)\n\n        \t\t#print('input: ', self.data[:self.window_size])\n\
+      \        \t\t#print('lookahead: ', self.data[self.window_size:])\n        \t\
+      \tself.inputs.append(self.data[:self.window_size]) #Join?\n        \t\t#print('idle:\
+      \ ', self.idel_count)\n        \t\tself.labels.append(self.idel_count)\t###########CHECK\
       \ WITH AND WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO\
-      \ out the oldest time slot\n        \t\t\n        if np.size(self.inputs) >\
-      \ 1000:\n        \tself.data_set_full = True\n\n        if self.data_set_full\
-      \ == True:\n        \t#df=pd.DataFrame(data=zip(self.inputs,self.labels))\n\
-      \        \tself.model.fit(self.inputs, self.labels, epochs=150, batch_size=32,\
-      \ verbose=0)\n        \t#train\n        \t#predict\n        \t\n        \toutput_items[0][:]\
-      \ = self.model.predict(self.data[:self.window_size])\n        #output_items[0][:]\
-      \ = input_items[0] \n        return len(output_items[0])\n       \n"
+      \ out the oldest time slot\n        \tif self.data_set_full == True:\n     \
+      \   \t\tif self.train == True:\n        \t\t\tself.model.fit(np.array(self.inputs),\
+      \ LabelEncoder().fit_transform(self.labels), epochs=150, batch_size=32, verbose=0)\n\
+      \        \t\t\tself.train = False\n        \t\toutput_items[0][:] = self.model.predict(self.data[:self.window_size])\n\
+      \t\t#output_items[0][:] = input_items[0] \n        if len(self.inputs) > 100:\n\
+      \        \tself.data_set_full = True\n\n        return len(output_items[0])\n\
+      \       \n"
     active_threshold: '0.9'
     affinity: ''
     alias: ''
