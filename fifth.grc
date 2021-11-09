@@ -213,7 +213,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1067, 649]
+    coordinate: [1081, 26]
     rotation: 0
     state: true
 - name: channels_channel_model_0
@@ -397,15 +397,16 @@ blocks:
       \ import groupby\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
       \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
       from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
-      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom sklearn.model_selection\
-      \ import train_test_split\nfrom sklearn.preprocessing import LabelEncoder\n\
-      import pandas as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete,\
-      \ Box\n\n\nfrom matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\n\
-      from matplotlib.figure import Figure\nfrom PyQt5 import QtCore #conda install\
-      \ pyqt\nfrom PyQt5 import QtWidgets\n\n\nclass blk(gr.sync_block):  # other\
-      \ base classes are basic_block, decim_block, interp_block\n    \"\"\"Embedded\
-      \ Python Block example - a simple multiply const\"\"\"\n\n    def __init__(self,seed\
-      \ = 0, number_of_GPUs = 1, window_size=10,look_ahead = 10, slot_time = 1, active_threshold=\
+      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom tensorflow import\
+      \ keras\nfrom tensorflow.keras import layers\nfrom sklearn.model_selection import\
+      \ train_test_split\nfrom sklearn.preprocessing import LabelEncoder\nimport pandas\
+      \ as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\n\n\
+      from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self,seed = 0, number_of_GPUs = 1,\
+      \ window_size=10,look_ahead = 10, slot_time = 1, history_length = 1000, active_threshold=\
       \ 0.9):  # only default arguments here\n        gr.sync_block.__init__(\n  \
       \          self,\n            name='Channle idle prediction',   # will show\
       \ up in GRC\n            in_sig=[np.complex64],\n            out_sig=[np.uint16]\n\
@@ -419,65 +420,675 @@ blocks:
       \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
       \        \n        self.active_threshold = active_threshold\n        \n    \
       \    self.window_size = window_size\n        self.look_ahead = look_ahead\n\
-      \        self.window_full = False\n        self.slot_time = slot_time\n    \
-      \    self.last_datetime = datetime.now()\n        \n        #NN model\n    \
-      \    self.model = Sequential()\n        self.model.add(Dense(self.window_size,\
-      \ input_shape=(self.window_size,)))\n        self.model.add(Dense(10,activation='relu'))\n\
-      \        self.model.add(Dense(1, activation='sigmoid'))\n        self.model.compile(optimizer='adam',\
-      \ loss='binary_crossentropy', metrics=['accuracy'])\n        \n        self.slots_count\
-      \ = 0\n        self.idel_count = 0\n        self.data = []\n        self.data_set_full\
-      \ = False\n        self.idles = []\n        \n        #df data set\n       \
-      \ self.inputs = []\n        self.labels = []\n        #self.data_set = pd.DataFrame\n\
-      \        self.train = True\n\n    def work(self, input_items, output_items):\n\
-      \        \"\"\"example: multiply with constant\"\"\"\n        if (datetime.now()\
-      \ - self.last_datetime) > timedelta(days=0, seconds=self.slot_time, microseconds=0,\
-      \ milliseconds=0, minutes=0, hours=0, weeks=0):\n        \tself.last_datetime\
-      \ = datetime.now()\n        \t\n        \t#collect slot history if channel is\
-      \ idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
-      \        \t\tself.data.append(1)\n        \t\t#fifo add upto window size. when\
-      \ idle, flag it,count untill occupied again and paste lable.\n        \telse:\n\
-      \        \t\tself.data.append(0)\n        \t\n        \t\n        \tif self.window_full\
-      \ == False:\n        \t\tself.slots_count += 1\n        \t\tif self.slots_count\
-      \ > self.look_ahead + self.window_size:\n        \t\t\tself.window_full = True\n\
-      \        \t\t\tprint('Minimal window and lookahead filled')\n        \telse:\n\
-      \        \t\tfor i in range(0,np.size(self.data[self.window_size:])):\n    \
-      \    \t\t\tif self.data[self.window_size:][i] == 1:\n        \t\t\t\tbreak\n\
-      \        \t\tself.idel_count = i \n        \t\t#[sum(1 for i in g) for k,g in\
-      \ groupby(self.data[self.window_size:]) if k==0]\n        \t\t#self.actives\
-      \ = [sum(1 for i in g) for k,g in groupby(self.data[self.window_size:]) if k==1]\n\
-      \        \t\t#print(self.idles)\n\n        \t\t#print('input: ', self.data[:self.window_size])\n\
-      \        \t\t#print('lookahead: ', self.data[self.window_size:])\n        \t\
-      \tself.inputs.append(self.data[:self.window_size]) #Join?\n        \t\t#print('idle:\
-      \ ', self.idel_count)\n        \t\tself.labels.append(self.idel_count)\t###########CHECK\
-      \ WITH AND WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO\
-      \ out the oldest time slot\n        \tif self.data_set_full == True:\n     \
-      \   \t\tif self.train == True:\n        \t\t\tself.model.fit(np.array(self.inputs),\
-      \ LabelEncoder().fit_transform(self.labels), epochs=150, batch_size=32, verbose=0)\n\
-      \        \t\t\tself.train = False\n        \t\toutput_items[0][:] = self.model.predict(self.data[:self.window_size])\n\
-      \t\t#output_items[0][:] = input_items[0] \n        if len(self.inputs) > 100:\n\
+      \        self.history_length = history_length\n        self.window_full = False\n\
+      \        self.slot_time = slot_time\n        self.last_datetime = datetime.now()\n\
+      \        \n        #NN model\n        self.model = keras.Sequential()\n    \
+      \    self.model.add(keras.Input(shape=(self.window_size,)))\n        self.model.add(Dense(self.window_size/2,activation='relu'))\n\
+      \        self.model.add(Dense(10,activation='relu'))\n        self.model.add(Dense(1,\
+      \ activation='sigmoid'))\n        self.model.compile(optimizer='adam', loss='binary_crossentropy',\
+      \ metrics=['accuracy'])\n        print('################## MODEL #######################')\n\
+      \        self.model.summary()\n        print(self.model.summary())\n\n     \
+      \   \n        \n        self.slots_count = 0\n        self.idel_count = 0\n\
+      \        self.data = []\n        self.data_set_full = False\n        self.idles\
+      \ = []\n        \n        #df data set\n        self.inputs = []\n        self.labels\
+      \ = []\n        #self.data_set = pd.DataFrame\n        self.train = True\n\n\
+      \    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
+      \ with constant\"\"\"\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
+      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n        \tself.last_datetime = datetime.now()\n        \t\n   \
+      \     \t#collect slot history if channel is idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
+      \        \t\tself.data.append(1)\n        \telse:\n        \t\tself.data.append(0)\n\
+      \        \t\n        \tif self.window_full == False:\n        \t\tself.slots_count\
+      \ += 1\n        \t\tif self.slots_count > self.look_ahead + self.window_size:\n\
+      \        \t\t\tself.window_full = True\n        \t\t\tprint('Minimal window\
+      \ and lookahead filled')\n        \telse:\n        \t\tfor i in range(0,np.size(self.data[self.window_size:])):\n\
+      \        \t\t\tif self.data[self.window_size:][i] == 1:\n        \t\t\t\tbreak\n\
+      \        \t\tself.idel_count = i \n        \t\tself.inputs.append(self.data[:self.window_size])\n\
+      \        \t\tself.labels.append([self.idel_count])\t###########CHECK WITH AND\
+      \ WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO out the\
+      \ oldest time slot\n        \tif self.data_set_full == True:\n        \t\tif\
+      \ self.train == True:\n\t        \t\tprint('input shape: ', tf.convert_to_tensor(self.inputs).shape)\n\
+      \t        \t\t#print(self.inputs)\n\t        \t\tprint('train shape: ', tf.convert_to_tensor(self.labels).shape)\n\
+      \t        \t\tprint(self.labels)\n\t        \t\tprint('input   :', tf.convert_to_tensor(self.data[self.window_size+1:]).shape)\n\
+      \t        \t\tprint(tf.reshape(tf.convert_to_tensor(self.data[self.window_size+1:]),(1,self.window_size)))\n\
+      \        \t\t\tself.model.fit(tf.convert_to_tensor(self.inputs),tf.convert_to_tensor(np.divide(self.labels,self.window_size)),\
+      \ epochs=150, batch_size=32, verbose=0)\n        \t\t\t\n        \t\t\tself.train\
+      \ = False\n        \t\t\tprint(self.model.summary())\n        \t\tinput_data\
+      \ = tf.convert_to_tensor(self.data[self.window_size+1:])\n        \t\tinput_data\
+      \ = tf.reshape(input_data , (1,self.window_size)) \n        \t\tprediction =\
+      \ self.model.predict(input_data)\n        \t\tprint('history: ', self.data[self.window_size+1:],\
+      \ ' prediction: ',prediction)\n        \t\tprint(tf.squeeze(prediction))\n \
+      \       \t\toutput_items[0][:]=prediction\n        if len(self.inputs) > self.history_length:\n\
       \        \tself.data_set_full = True\n\n        return len(output_items[0])\n\
       \       \n"
     active_threshold: '0.9'
     affinity: ''
     alias: ''
     comment: ''
-    look_ahead: '14'
+    history_length: '1000'
+    look_ahead: '100'
     maxoutbuf: '0'
     minoutbuf: '0'
     number_of_GPUs: '1'
     seed: '0'
     slot_time: '1'
-    window_size: '14'
+    window_size: '100'
   states:
     _io_cache: ('Channle idle prediction', 'blk', [('seed', '0'), ('number_of_GPUs',
-      '1'), ('window_size', '10'), ('look_ahead', '10'), ('slot_time', '1'), ('active_threshold',
-      '0.9')], [('0', 'complex', 1)], [('0', 'short', 1)], 'Embedded Python Block
-      example - a simple multiply const', ['active_threshold', 'look_ahead', 'slot_time',
-      'window_size'])
+      '1'), ('window_size', '10'), ('look_ahead', '10'), ('slot_time', '1'), ('history_length',
+      '1000'), ('active_threshold', '0.9')], [('0', 'complex', 1)], [('0', 'short',
+      1)], 'Embedded Python Block example - a simple multiply const', ['active_threshold',
+      'history_length', 'look_ahead', 'slot_time', 'window_size'])
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1204, 287]
+    coordinate: [1176, 881]
+    rotation: 0
+    state: true
+- name: epy_block_0_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport os\nimport copy\n\
+      import sys      \nimport time\nimport schedule\nimport threading\nfrom datetime\
+      \ import datetime, timedelta\nfrom timeslot import Timeslot  \nimport numpy\
+      \ as np\nfrom numpy.lib.stride_tricks import sliding_window_view\nfrom itertools\
+      \ import groupby\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
+      \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
+      from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
+      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom tensorflow import\
+      \ keras\nfrom tensorflow.keras import layers\nfrom sklearn.model_selection import\
+      \ train_test_split\nfrom sklearn.preprocessing import LabelEncoder\nimport pandas\
+      \ as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\n\n\
+      from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self,seed = 0, number_of_GPUs = 1,\
+      \ window_size=10,look_ahead = 10, slot_time = 1, history_length = 1000, active_threshold=\
+      \ 0.9):  # only default arguments here\n        gr.sync_block.__init__(\n  \
+      \          self,\n            name='Channle idle prediction',   # will show\
+      \ up in GRC\n            in_sig=[np.complex64],\n            out_sig=[np.uint16]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        \n    \
+      \    #initailize tensorflow and GPU usage\n        print('Tensorflow version:\
+      \ ', tf.__version__)\n        gpus = tf.config.experimental.list_physical_devices(\"\
+      GPU\")\n        print('Number of GPUs available :', len(gpus)) \n        num_GPU\
+      \ = number_of_GPUs\n        if num_GPU < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
+      \ 'GPU')\n        \ttf.config.experimental.set_memory_growth(gpus[num_GPU],\
+      \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
+      \        \n        self.active_threshold = active_threshold\n        \n    \
+      \    self.window_size = window_size\n        self.look_ahead = look_ahead\n\
+      \        self.history_length = history_length\n        self.window_full = False\n\
+      \        self.slot_time = slot_time\n        self.last_datetime = datetime.now()\n\
+      \        \n        #NN model\n        self.model = keras.Sequential()\n    \
+      \    self.model.add(keras.Input(shape=(self.window_size,)))\n        self.model.add(Dense(self.window_size/2,activation='relu'))\n\
+      \        self.model.add(Dense(10,activation='relu'))\n        self.model.add(Dense(1,\
+      \ activation='sigmoid'))\n        self.model.compile(optimizer='adam', loss='binary_crossentropy',\
+      \ metrics=['accuracy'])\n        print('################## MODEL #######################')\n\
+      \        self.model.summary()\n        print(self.model.summary())\n\n     \
+      \   \n        \n        self.slots_count = 0\n        self.idel_count = 0\n\
+      \        self.data = []\n        self.data_set_full = False\n        self.idles\
+      \ = []\n        \n        #df data set\n        self.inputs = []\n        self.labels\
+      \ = []\n        #self.data_set = pd.DataFrame\n        self.train = True\n\n\
+      \    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
+      \ with constant\"\"\"\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
+      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n        \tself.last_datetime = datetime.now()\n        \t\n   \
+      \     \t#collect slot history if channel is idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
+      \        \t\tself.data.append(1)\n        \telse:\n        \t\tself.data.append(0)\n\
+      \        \t\n        \tif self.window_full == False:\n        \t\tself.slots_count\
+      \ += 1\n        \t\tif self.slots_count > self.look_ahead + self.window_size:\n\
+      \        \t\t\tself.window_full = True\n        \t\t\tprint('Minimal window\
+      \ and lookahead filled')\n        \telse:\n        \t\tfor i in range(0,np.size(self.data[self.window_size:])):\n\
+      \        \t\t\tif self.data[self.window_size:][i] == 1:\n        \t\t\t\tbreak\n\
+      \        \t\tself.idel_count = i \n        \t\tself.inputs.append(self.data[:self.window_size])\n\
+      \        \t\tself.labels.append([self.idel_count])\t###########CHECK WITH AND\
+      \ WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO out the\
+      \ oldest time slot\n        \tif self.data_set_full == True:\n        \t\tif\
+      \ self.train == True:\n\t        \t\tprint('input shape: ', tf.convert_to_tensor(self.inputs).shape)\n\
+      \t        \t\t#print(self.inputs)\n\t        \t\tprint('train shape: ', tf.convert_to_tensor(self.labels).shape)\n\
+      \t        \t\tprint(self.labels)\n\t        \t\tprint('input   :', tf.convert_to_tensor(self.data[self.window_size+1:]).shape)\n\
+      \t        \t\tprint(tf.reshape(tf.convert_to_tensor(self.data[self.window_size+1:]),(1,self.window_size)))\n\
+      \        \t\t\tself.model.fit(tf.convert_to_tensor(self.inputs),tf.convert_to_tensor(np.divide(self.labels,self.window_size)),\
+      \ epochs=150, batch_size=32, verbose=0)\n        \t\t\t\n        \t\t\tself.train\
+      \ = False\n        \t\t\tprint(self.model.summary())\n        \t\tinput_data\
+      \ = tf.convert_to_tensor(self.data[self.window_size+1:])\n        \t\tinput_data\
+      \ = tf.reshape(input_data , (1,self.window_size)) \n        \t\tprediction =\
+      \ self.model.predict(input_data)\n        \t\tprint('history: ', self.data[self.window_size+1:],\
+      \ ' prediction: ',prediction)\n        \t\tprint(tf.squeeze(prediction))\n \
+      \       \t\toutput_items[0][:]=prediction\n        if len(self.inputs) > self.history_length:\n\
+      \        \tself.data_set_full = True\n\n        return len(output_items[0])\n\
+      \       \n"
+    active_threshold: '0.9'
+    affinity: ''
+    alias: ''
+    comment: ''
+    history_length: '1000'
+    look_ahead: '100'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    number_of_GPUs: '1'
+    seed: '0'
+    slot_time: '1'
+    window_size: '100'
+  states:
+    _io_cache: ('Channle idle prediction', 'blk', [('seed', '0'), ('number_of_GPUs',
+      '1'), ('window_size', '10'), ('look_ahead', '10'), ('slot_time', '1'), ('history_length',
+      '1000'), ('active_threshold', '0.9')], [('0', 'complex', 1)], [('0', 'short',
+      1)], 'Embedded Python Block example - a simple multiply const', ['active_threshold',
+      'history_length', 'look_ahead', 'slot_time', 'window_size'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1174, 718]
+    rotation: 0
+    state: true
+- name: epy_block_0_0_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport os\nimport copy\n\
+      import sys      \nimport time\nimport schedule\nimport threading\nfrom datetime\
+      \ import datetime, timedelta\nfrom timeslot import Timeslot  \nimport numpy\
+      \ as np\nfrom numpy.lib.stride_tricks import sliding_window_view\nfrom itertools\
+      \ import groupby\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
+      \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
+      from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
+      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom tensorflow import\
+      \ keras\nfrom tensorflow.keras import layers\nfrom sklearn.model_selection import\
+      \ train_test_split\nfrom sklearn.preprocessing import LabelEncoder\nimport pandas\
+      \ as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\n\n\
+      from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self,seed = 0, number_of_GPUs = 1,\
+      \ window_size=10,look_ahead = 10, slot_time = 1, history_length = 1000, active_threshold=\
+      \ 0.9):  # only default arguments here\n        gr.sync_block.__init__(\n  \
+      \          self,\n            name='Channle idle prediction',   # will show\
+      \ up in GRC\n            in_sig=[np.complex64],\n            out_sig=[np.uint16]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        \n    \
+      \    #initailize tensorflow and GPU usage\n        print('Tensorflow version:\
+      \ ', tf.__version__)\n        gpus = tf.config.experimental.list_physical_devices(\"\
+      GPU\")\n        print('Number of GPUs available :', len(gpus)) \n        num_GPU\
+      \ = number_of_GPUs\n        if num_GPU < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
+      \ 'GPU')\n        \ttf.config.experimental.set_memory_growth(gpus[num_GPU],\
+      \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
+      \        \n        self.active_threshold = active_threshold\n        \n    \
+      \    self.window_size = window_size\n        self.look_ahead = look_ahead\n\
+      \        self.history_length = history_length\n        self.window_full = False\n\
+      \        self.slot_time = slot_time\n        self.last_datetime = datetime.now()\n\
+      \        \n        #NN model\n        self.model = keras.Sequential()\n    \
+      \    self.model.add(keras.Input(shape=(self.window_size,)))\n        self.model.add(Dense(self.window_size/2,activation='relu'))\n\
+      \        self.model.add(Dense(10,activation='relu'))\n        self.model.add(Dense(1,\
+      \ activation='sigmoid'))\n        self.model.compile(optimizer='adam', loss='binary_crossentropy',\
+      \ metrics=['accuracy'])\n        print('################## MODEL #######################')\n\
+      \        self.model.summary()\n        print(self.model.summary())\n\n     \
+      \   \n        \n        self.slots_count = 0\n        self.idel_count = 0\n\
+      \        self.data = []\n        self.data_set_full = False\n        self.idles\
+      \ = []\n        \n        #df data set\n        self.inputs = []\n        self.labels\
+      \ = []\n        #self.data_set = pd.DataFrame\n        self.train = True\n\n\
+      \    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
+      \ with constant\"\"\"\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
+      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n        \tself.last_datetime = datetime.now()\n        \t\n   \
+      \     \t#collect slot history if channel is idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
+      \        \t\tself.data.append(1)\n        \telse:\n        \t\tself.data.append(0)\n\
+      \        \t\n        \tif self.window_full == False:\n        \t\tself.slots_count\
+      \ += 1\n        \t\tif self.slots_count > self.look_ahead + self.window_size:\n\
+      \        \t\t\tself.window_full = True\n        \t\t\tprint('Minimal window\
+      \ and lookahead filled')\n        \telse:\n        \t\tfor i in range(0,np.size(self.data[self.window_size:])):\n\
+      \        \t\t\tif self.data[self.window_size:][i] == 1:\n        \t\t\t\tbreak\n\
+      \        \t\tself.idel_count = i \n        \t\tself.inputs.append(self.data[:self.window_size])\n\
+      \        \t\tself.labels.append([self.idel_count])\t###########CHECK WITH AND\
+      \ WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO out the\
+      \ oldest time slot\n        \tif self.data_set_full == True:\n        \t\tif\
+      \ self.train == True:\n\t        \t\tprint('input shape: ', tf.convert_to_tensor(self.inputs).shape)\n\
+      \t        \t\t#print(self.inputs)\n\t        \t\tprint('train shape: ', tf.convert_to_tensor(self.labels).shape)\n\
+      \t        \t\tprint(self.labels)\n\t        \t\tprint('input   :', tf.convert_to_tensor(self.data[self.window_size+1:]).shape)\n\
+      \t        \t\tprint(tf.reshape(tf.convert_to_tensor(self.data[self.window_size+1:]),(1,self.window_size)))\n\
+      \        \t\t\tself.model.fit(tf.convert_to_tensor(self.inputs),tf.convert_to_tensor(np.divide(self.labels,self.window_size)),\
+      \ epochs=150, batch_size=32, verbose=0)\n        \t\t\t\n        \t\t\tself.train\
+      \ = False\n        \t\t\tprint(self.model.summary())\n        \t\tinput_data\
+      \ = tf.convert_to_tensor(self.data[self.window_size+1:])\n        \t\tinput_data\
+      \ = tf.reshape(input_data , (1,self.window_size)) \n        \t\tprediction =\
+      \ self.model.predict(input_data)\n        \t\tprint('history: ', self.data[self.window_size+1:],\
+      \ ' prediction: ',prediction)\n        \t\tprint(tf.squeeze(prediction))\n \
+      \       \t\toutput_items[0][:]=prediction\n        if len(self.inputs) > self.history_length:\n\
+      \        \tself.data_set_full = True\n\n        return len(output_items[0])\n\
+      \       \n"
+    active_threshold: '0.9'
+    affinity: ''
+    alias: ''
+    comment: ''
+    history_length: '1000'
+    look_ahead: '100'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    number_of_GPUs: '1'
+    seed: '0'
+    slot_time: '1'
+    window_size: '100'
+  states:
+    _io_cache: ('Channle idle prediction', 'blk', [('seed', '0'), ('number_of_GPUs',
+      '1'), ('window_size', '10'), ('look_ahead', '10'), ('slot_time', '1'), ('history_length',
+      '1000'), ('active_threshold', '0.9')], [('0', 'complex', 1)], [('0', 'short',
+      1)], 'Embedded Python Block example - a simple multiply const', ['active_threshold',
+      'history_length', 'look_ahead', 'slot_time', 'window_size'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1177, 563]
+    rotation: 0
+    state: true
+- name: epy_block_0_0_0_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport os\nimport copy\n\
+      import sys      \nimport time\nimport schedule\nimport threading\nfrom datetime\
+      \ import datetime, timedelta\nfrom timeslot import Timeslot  \nimport numpy\
+      \ as np\nfrom numpy.lib.stride_tricks import sliding_window_view\nfrom itertools\
+      \ import groupby\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
+      \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
+      from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
+      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom tensorflow import\
+      \ keras\nfrom tensorflow.keras import layers\nfrom sklearn.model_selection import\
+      \ train_test_split\nfrom sklearn.preprocessing import LabelEncoder\nimport pandas\
+      \ as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\n\n\
+      from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self,seed = 0, number_of_GPUs = 1,\
+      \ window_size=10,look_ahead = 10, slot_time = 1, history_length = 1000, active_threshold=\
+      \ 0.9):  # only default arguments here\n        gr.sync_block.__init__(\n  \
+      \          self,\n            name='Channle idle prediction',   # will show\
+      \ up in GRC\n            in_sig=[np.complex64],\n            out_sig=[np.uint16]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        \n    \
+      \    #initailize tensorflow and GPU usage\n        print('Tensorflow version:\
+      \ ', tf.__version__)\n        gpus = tf.config.experimental.list_physical_devices(\"\
+      GPU\")\n        print('Number of GPUs available :', len(gpus)) \n        num_GPU\
+      \ = number_of_GPUs\n        if num_GPU < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
+      \ 'GPU')\n        \ttf.config.experimental.set_memory_growth(gpus[num_GPU],\
+      \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
+      \        \n        self.active_threshold = active_threshold\n        \n    \
+      \    self.window_size = window_size\n        self.look_ahead = look_ahead\n\
+      \        self.history_length = history_length\n        self.window_full = False\n\
+      \        self.slot_time = slot_time\n        self.last_datetime = datetime.now()\n\
+      \        \n        #NN model\n        self.model = keras.Sequential()\n    \
+      \    self.model.add(keras.Input(shape=(self.window_size,)))\n        self.model.add(Dense(self.window_size/2,activation='relu'))\n\
+      \        self.model.add(Dense(10,activation='relu'))\n        self.model.add(Dense(1,\
+      \ activation='sigmoid'))\n        self.model.compile(optimizer='adam', loss='binary_crossentropy',\
+      \ metrics=['accuracy'])\n        print('################## MODEL #######################')\n\
+      \        self.model.summary()\n        print(self.model.summary())\n\n     \
+      \   \n        \n        self.slots_count = 0\n        self.idel_count = 0\n\
+      \        self.data = []\n        self.data_set_full = False\n        self.idles\
+      \ = []\n        \n        #df data set\n        self.inputs = []\n        self.labels\
+      \ = []\n        #self.data_set = pd.DataFrame\n        self.train = True\n\n\
+      \    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
+      \ with constant\"\"\"\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
+      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n        \tself.last_datetime = datetime.now()\n        \t\n   \
+      \     \t#collect slot history if channel is idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
+      \        \t\tself.data.append(1)\n        \telse:\n        \t\tself.data.append(0)\n\
+      \        \t\n        \tif self.window_full == False:\n        \t\tself.slots_count\
+      \ += 1\n        \t\tif self.slots_count > self.look_ahead + self.window_size:\n\
+      \        \t\t\tself.window_full = True\n        \t\t\tprint('Minimal window\
+      \ and lookahead filled')\n        \telse:\n        \t\tfor i in range(0,np.size(self.data[self.window_size:])):\n\
+      \        \t\t\tif self.data[self.window_size:][i] == 1:\n        \t\t\t\tbreak\n\
+      \        \t\tself.idel_count = i \n        \t\tself.inputs.append(self.data[:self.window_size])\n\
+      \        \t\tself.labels.append([self.idel_count])\t###########CHECK WITH AND\
+      \ WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO out the\
+      \ oldest time slot\n        \tif self.data_set_full == True:\n        \t\tif\
+      \ self.train == True:\n\t        \t\tprint('input shape: ', tf.convert_to_tensor(self.inputs).shape)\n\
+      \t        \t\t#print(self.inputs)\n\t        \t\tprint('train shape: ', tf.convert_to_tensor(self.labels).shape)\n\
+      \t        \t\tprint(self.labels)\n\t        \t\tprint('input   :', tf.convert_to_tensor(self.data[self.window_size+1:]).shape)\n\
+      \t        \t\tprint(tf.reshape(tf.convert_to_tensor(self.data[self.window_size+1:]),(1,self.window_size)))\n\
+      \        \t\t\tself.model.fit(tf.convert_to_tensor(self.inputs),tf.convert_to_tensor(np.divide(self.labels,self.window_size)),\
+      \ epochs=150, batch_size=32, verbose=0)\n        \t\t\t\n        \t\t\tself.train\
+      \ = False\n        \t\t\tprint(self.model.summary())\n        \t\tinput_data\
+      \ = tf.convert_to_tensor(self.data[self.window_size+1:])\n        \t\tinput_data\
+      \ = tf.reshape(input_data , (1,self.window_size)) \n        \t\tprediction =\
+      \ self.model.predict(input_data)\n        \t\tprint('history: ', self.data[self.window_size+1:],\
+      \ ' prediction: ',prediction)\n        \t\tprint(tf.squeeze(prediction))\n \
+      \       \t\toutput_items[0][:]=prediction\n        if len(self.inputs) > self.history_length:\n\
+      \        \tself.data_set_full = True\n\n        return len(output_items[0])\n\
+      \       \n"
+    active_threshold: '0.9'
+    affinity: ''
+    alias: ''
+    comment: ''
+    history_length: '1000'
+    look_ahead: '100'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    number_of_GPUs: '1'
+    seed: '0'
+    slot_time: '1'
+    window_size: '100'
+  states:
+    _io_cache: ('Channle idle prediction', 'blk', [('seed', '0'), ('number_of_GPUs',
+      '1'), ('window_size', '10'), ('look_ahead', '10'), ('slot_time', '1'), ('history_length',
+      '1000'), ('active_threshold', '0.9')], [('0', 'complex', 1)], [('0', 'short',
+      1)], 'Embedded Python Block example - a simple multiply const', ['active_threshold',
+      'history_length', 'look_ahead', 'slot_time', 'window_size'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1175, 404]
+    rotation: 0
+    state: true
+- name: epy_block_0_0_0_0_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport os\nimport copy\n\
+      import sys      \nimport time\nimport schedule\nimport threading\nfrom datetime\
+      \ import datetime, timedelta\nfrom timeslot import Timeslot  \nimport numpy\
+      \ as np\nfrom numpy.lib.stride_tricks import sliding_window_view\nfrom itertools\
+      \ import groupby\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
+      \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
+      from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
+      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom tensorflow import\
+      \ keras\nfrom tensorflow.keras import layers\nfrom sklearn.model_selection import\
+      \ train_test_split\nfrom sklearn.preprocessing import LabelEncoder\nimport pandas\
+      \ as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\n\n\
+      from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self,seed = 0, number_of_GPUs = 1,\
+      \ window_size=10,look_ahead = 10, slot_time = 1, history_length = 1000, active_threshold=\
+      \ 0.9):  # only default arguments here\n        gr.sync_block.__init__(\n  \
+      \          self,\n            name='Channle idle prediction',   # will show\
+      \ up in GRC\n            in_sig=[np.complex64],\n            out_sig=[np.uint16]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        \n    \
+      \    #initailize tensorflow and GPU usage\n        print('Tensorflow version:\
+      \ ', tf.__version__)\n        gpus = tf.config.experimental.list_physical_devices(\"\
+      GPU\")\n        print('Number of GPUs available :', len(gpus)) \n        num_GPU\
+      \ = number_of_GPUs\n        if num_GPU < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
+      \ 'GPU')\n        \ttf.config.experimental.set_memory_growth(gpus[num_GPU],\
+      \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
+      \        \n        self.active_threshold = active_threshold\n        \n    \
+      \    self.window_size = window_size\n        self.look_ahead = look_ahead\n\
+      \        self.history_length = history_length\n        self.window_full = False\n\
+      \        self.slot_time = slot_time\n        self.last_datetime = datetime.now()\n\
+      \        \n        #NN model\n        self.model = keras.Sequential()\n    \
+      \    self.model.add(keras.Input(shape=(self.window_size,)))\n        self.model.add(Dense(self.window_size/2,activation='relu'))\n\
+      \        self.model.add(Dense(10,activation='relu'))\n        self.model.add(Dense(1,\
+      \ activation='sigmoid'))\n        self.model.compile(optimizer='adam', loss='binary_crossentropy',\
+      \ metrics=['accuracy'])\n        print('################## MODEL #######################')\n\
+      \        self.model.summary()\n        print(self.model.summary())\n\n     \
+      \   \n        \n        self.slots_count = 0\n        self.idel_count = 0\n\
+      \        self.data = []\n        self.data_set_full = False\n        self.idles\
+      \ = []\n        \n        #df data set\n        self.inputs = []\n        self.labels\
+      \ = []\n        #self.data_set = pd.DataFrame\n        self.train = True\n\n\
+      \    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
+      \ with constant\"\"\"\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
+      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n        \tself.last_datetime = datetime.now()\n        \t\n   \
+      \     \t#collect slot history if channel is idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
+      \        \t\tself.data.append(1)\n        \telse:\n        \t\tself.data.append(0)\n\
+      \        \t\n        \tif self.window_full == False:\n        \t\tself.slots_count\
+      \ += 1\n        \t\tif self.slots_count > self.look_ahead + self.window_size:\n\
+      \        \t\t\tself.window_full = True\n        \t\t\tprint('Minimal window\
+      \ and lookahead filled')\n        \telse:\n        \t\tfor i in range(0,np.size(self.data[self.window_size:])):\n\
+      \        \t\t\tif self.data[self.window_size:][i] == 1:\n        \t\t\t\tbreak\n\
+      \        \t\tself.idel_count = i \n        \t\tself.inputs.append(self.data[:self.window_size])\n\
+      \        \t\tself.labels.append([self.idel_count])\t###########CHECK WITH AND\
+      \ WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO out the\
+      \ oldest time slot\n        \tif self.data_set_full == True:\n        \t\tif\
+      \ self.train == True:\n\t        \t\tprint('input shape: ', tf.convert_to_tensor(self.inputs).shape)\n\
+      \t        \t\t#print(self.inputs)\n\t        \t\tprint('train shape: ', tf.convert_to_tensor(self.labels).shape)\n\
+      \t        \t\tprint(self.labels)\n\t        \t\tprint('input   :', tf.convert_to_tensor(self.data[self.window_size+1:]).shape)\n\
+      \t        \t\tprint(tf.reshape(tf.convert_to_tensor(self.data[self.window_size+1:]),(1,self.window_size)))\n\
+      \        \t\t\tself.model.fit(tf.convert_to_tensor(self.inputs),tf.convert_to_tensor(np.divide(self.labels,self.window_size)),\
+      \ epochs=150, batch_size=32, verbose=0)\n        \t\t\t\n        \t\t\tself.train\
+      \ = False\n        \t\t\tprint(self.model.summary())\n        \t\tinput_data\
+      \ = tf.convert_to_tensor(self.data[self.window_size+1:])\n        \t\tinput_data\
+      \ = tf.reshape(input_data , (1,self.window_size)) \n        \t\tprediction =\
+      \ self.model.predict(input_data)\n        \t\tprint('history: ', self.data[self.window_size+1:],\
+      \ ' prediction: ',prediction)\n        \t\tprint(tf.squeeze(prediction))\n \
+      \       \t\toutput_items[0][:]=prediction\n        if len(self.inputs) > self.history_length:\n\
+      \        \tself.data_set_full = True\n\n        return len(output_items[0])\n\
+      \       \n"
+    active_threshold: '0.9'
+    affinity: ''
+    alias: ''
+    comment: ''
+    history_length: '1000'
+    look_ahead: '100'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    number_of_GPUs: '1'
+    seed: '0'
+    slot_time: '1'
+    window_size: '100'
+  states:
+    _io_cache: ('Channle idle prediction', 'blk', [('seed', '0'), ('number_of_GPUs',
+      '1'), ('window_size', '10'), ('look_ahead', '10'), ('slot_time', '1'), ('history_length',
+      '1000'), ('active_threshold', '0.9')], [('0', 'complex', 1)], [('0', 'short',
+      1)], 'Embedded Python Block example - a simple multiply const', ['active_threshold',
+      'history_length', 'look_ahead', 'slot_time', 'window_size'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1175, 253]
+    rotation: 0
+    state: true
+- name: epy_block_0_0_0_0_0_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport os\nimport copy\n\
+      import sys      \nimport time\nimport schedule\nimport threading\nfrom datetime\
+      \ import datetime, timedelta\nfrom timeslot import Timeslot  \nimport numpy\
+      \ as np\nfrom numpy.lib.stride_tricks import sliding_window_view\nfrom itertools\
+      \ import groupby\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
+      \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
+      from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
+      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom tensorflow import\
+      \ keras\nfrom tensorflow.keras import layers\nfrom sklearn.model_selection import\
+      \ train_test_split\nfrom sklearn.preprocessing import LabelEncoder\nimport pandas\
+      \ as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\n\n\
+      from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self,seed = 0, number_of_GPUs = 1,\
+      \ window_size=10,look_ahead = 10, slot_time = 1, history_length = 1000, active_threshold=\
+      \ 0.9):  # only default arguments here\n        gr.sync_block.__init__(\n  \
+      \          self,\n            name='Channle idle prediction',   # will show\
+      \ up in GRC\n            in_sig=[np.complex64],\n            out_sig=[np.uint16]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        \n    \
+      \    #initailize tensorflow and GPU usage\n        print('Tensorflow version:\
+      \ ', tf.__version__)\n        gpus = tf.config.experimental.list_physical_devices(\"\
+      GPU\")\n        print('Number of GPUs available :', len(gpus)) \n        num_GPU\
+      \ = number_of_GPUs\n        if num_GPU < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
+      \ 'GPU')\n        \ttf.config.experimental.set_memory_growth(gpus[num_GPU],\
+      \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
+      \        \n        self.active_threshold = active_threshold\n        \n    \
+      \    self.window_size = window_size\n        self.look_ahead = look_ahead\n\
+      \        self.history_length = history_length\n        self.window_full = False\n\
+      \        self.slot_time = slot_time\n        self.last_datetime = datetime.now()\n\
+      \        \n        #NN model\n        self.model = keras.Sequential()\n    \
+      \    self.model.add(keras.Input(shape=(self.window_size,)))\n        self.model.add(Dense(self.window_size/2,activation='relu'))\n\
+      \        self.model.add(Dense(10,activation='relu'))\n        self.model.add(Dense(1,\
+      \ activation='sigmoid'))\n        self.model.compile(optimizer='adam', loss='binary_crossentropy',\
+      \ metrics=['accuracy'])\n        print('################## MODEL #######################')\n\
+      \        self.model.summary()\n        print(self.model.summary())\n\n     \
+      \   \n        \n        self.slots_count = 0\n        self.idel_count = 0\n\
+      \        self.data = []\n        self.data_set_full = False\n        self.idles\
+      \ = []\n        \n        #df data set\n        self.inputs = []\n        self.labels\
+      \ = []\n        #self.data_set = pd.DataFrame\n        self.train = True\n\n\
+      \    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
+      \ with constant\"\"\"\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
+      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n        \tself.last_datetime = datetime.now()\n        \t\n   \
+      \     \t#collect slot history if channel is idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
+      \        \t\tself.data.append(1)\n        \telse:\n        \t\tself.data.append(0)\n\
+      \        \t\n        \tif self.window_full == False:\n        \t\tself.slots_count\
+      \ += 1\n        \t\tif self.slots_count > self.look_ahead + self.window_size:\n\
+      \        \t\t\tself.window_full = True\n        \t\t\tprint('Minimal window\
+      \ and lookahead filled')\n        \telse:\n        \t\tfor i in range(0,np.size(self.data[self.window_size:])):\n\
+      \        \t\t\tif self.data[self.window_size:][i] == 1:\n        \t\t\t\tbreak\n\
+      \        \t\tself.idel_count = i \n        \t\tself.inputs.append(self.data[:self.window_size])\n\
+      \        \t\tself.labels.append([self.idel_count])\t###########CHECK WITH AND\
+      \ WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO out the\
+      \ oldest time slot\n        \tif self.data_set_full == True:\n        \t\tif\
+      \ self.train == True:\n\t        \t\tprint('input shape: ', tf.convert_to_tensor(self.inputs).shape)\n\
+      \t        \t\t#print(self.inputs)\n\t        \t\tprint('train shape: ', tf.convert_to_tensor(self.labels).shape)\n\
+      \t        \t\tprint(self.labels)\n\t        \t\tprint('input   :', tf.convert_to_tensor(self.data[self.window_size+1:]).shape)\n\
+      \t        \t\tprint(tf.reshape(tf.convert_to_tensor(self.data[self.window_size+1:]),(1,self.window_size)))\n\
+      \        \t\t\tself.model.fit(tf.convert_to_tensor(self.inputs),tf.convert_to_tensor(np.divide(self.labels,self.window_size)),\
+      \ epochs=150, batch_size=32, verbose=0)\n        \t\t\t\n        \t\t\tself.train\
+      \ = False\n        \t\t\tprint(self.model.summary())\n        \t\tinput_data\
+      \ = tf.convert_to_tensor(self.data[self.window_size+1:])\n        \t\tinput_data\
+      \ = tf.reshape(input_data , (1,self.window_size)) \n        \t\tprediction =\
+      \ self.model.predict(input_data)\n        \t\tprint('history: ', self.data[self.window_size+1:],\
+      \ ' prediction: ',prediction)\n        \t\tprint(tf.squeeze(prediction))\n \
+      \       \t\toutput_items[0][:]=prediction\n        if len(self.inputs) > self.history_length:\n\
+      \        \tself.data_set_full = True\n\n        return len(output_items[0])\n\
+      \       \n"
+    active_threshold: '0.9'
+    affinity: ''
+    alias: ''
+    comment: ''
+    history_length: '1000'
+    look_ahead: '100'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    number_of_GPUs: '1'
+    seed: '0'
+    slot_time: '1'
+    window_size: '100'
+  states:
+    _io_cache: ('Channle idle prediction', 'blk', [('seed', '0'), ('number_of_GPUs',
+      '1'), ('window_size', '10'), ('look_ahead', '10'), ('slot_time', '1'), ('history_length',
+      '1000'), ('active_threshold', '0.9')], [('0', 'complex', 1)], [('0', 'short',
+      1)], 'Embedded Python Block example - a simple multiply const', ['active_threshold',
+      'history_length', 'look_ahead', 'slot_time', 'window_size'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1178, 106]
+    rotation: 0
+    state: true
+- name: epy_block_0_0_0_0_0_0_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport os\nimport copy\n\
+      import sys      \nimport time\nimport schedule\nimport threading\nfrom datetime\
+      \ import datetime, timedelta\nfrom timeslot import Timeslot  \nimport numpy\
+      \ as np\nfrom numpy.lib.stride_tricks import sliding_window_view\nfrom itertools\
+      \ import groupby\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
+      \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
+      from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
+      \ import Dense\nfrom tensorflow.keras import Sequential\nfrom tensorflow import\
+      \ keras\nfrom tensorflow.keras import layers\nfrom sklearn.model_selection import\
+      \ train_test_split\nfrom sklearn.preprocessing import LabelEncoder\nimport pandas\
+      \ as pd  \n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\n\n\
+      from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self,seed = 0, number_of_GPUs = 1,\
+      \ window_size=10,look_ahead = 10, slot_time = 1, history_length = 1000, active_threshold=\
+      \ 0.9):  # only default arguments here\n        gr.sync_block.__init__(\n  \
+      \          self,\n            name='Channle idle prediction',   # will show\
+      \ up in GRC\n            in_sig=[np.complex64],\n            out_sig=[np.uint16]\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        \n    \
+      \    #initailize tensorflow and GPU usage\n        print('Tensorflow version:\
+      \ ', tf.__version__)\n        gpus = tf.config.experimental.list_physical_devices(\"\
+      GPU\")\n        print('Number of GPUs available :', len(gpus)) \n        num_GPU\
+      \ = number_of_GPUs\n        if num_GPU < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
+      \ 'GPU')\n        \ttf.config.experimental.set_memory_growth(gpus[num_GPU],\
+      \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
+      \        \n        self.active_threshold = active_threshold\n        \n    \
+      \    self.window_size = window_size\n        self.look_ahead = look_ahead\n\
+      \        self.history_length = history_length\n        self.window_full = False\n\
+      \        self.slot_time = slot_time\n        self.last_datetime = datetime.now()\n\
+      \        \n        #NN model\n        self.model = keras.Sequential()\n    \
+      \    self.model.add(keras.Input(shape=(self.window_size,)))\n        self.model.add(Dense(self.window_size/2,activation='relu'))\n\
+      \        self.model.add(Dense(10,activation='relu'))\n        self.model.add(Dense(1,\
+      \ activation='sigmoid'))\n        self.model.compile(optimizer='adam', loss='binary_crossentropy',\
+      \ metrics=['accuracy'])\n        print('################## MODEL #######################')\n\
+      \        self.model.summary()\n        print(self.model.summary())\n\n     \
+      \   \n        \n        self.slots_count = 0\n        self.idel_count = 0\n\
+      \        self.data = []\n        self.data_set_full = False\n        self.idles\
+      \ = []\n        \n        #df data set\n        self.inputs = []\n        self.labels\
+      \ = []\n        #self.data_set = pd.DataFrame\n        self.train = True\n\n\
+      \    def work(self, input_items, output_items):\n        \"\"\"example: multiply\
+      \ with constant\"\"\"\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
+      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n        \tself.last_datetime = datetime.now()\n        \t\n   \
+      \     \t#collect slot history if channel is idle\n        \tif (np.mean(abs(input_items[0][:]))>self.active_threshold):\n\
+      \        \t\tself.data.append(1)\n        \telse:\n        \t\tself.data.append(0)\n\
+      \        \t\n        \tif self.window_full == False:\n        \t\tself.slots_count\
+      \ += 1\n        \t\tif self.slots_count > self.look_ahead + self.window_size:\n\
+      \        \t\t\tself.window_full = True\n        \t\t\tprint('Minimal window\
+      \ and lookahead filled')\n        \telse:\n        \t\tfor i in range(0,np.size(self.data[self.window_size:])):\n\
+      \        \t\t\tif self.data[self.window_size:][i] == 1:\n        \t\t\t\tbreak\n\
+      \        \t\tself.idel_count = i \n        \t\tself.inputs.append(self.data[:self.window_size])\n\
+      \        \t\tself.labels.append([self.idel_count])\t###########CHECK WITH AND\
+      \ WITHOUT ZERO IDLE TIMES########\n        \t\tself.data.pop(0) #FIFO out the\
+      \ oldest time slot\n        \tif self.data_set_full == True:\n        \t\tif\
+      \ self.train == True:\n\t        \t\tprint('input shape: ', tf.convert_to_tensor(self.inputs).shape)\n\
+      \t        \t\t#print(self.inputs)\n\t        \t\tprint('train shape: ', tf.convert_to_tensor(self.labels).shape)\n\
+      \t        \t\tprint(self.labels)\n\t        \t\tprint('input   :', tf.convert_to_tensor(self.data[self.window_size+1:]).shape)\n\
+      \t        \t\tprint(tf.reshape(tf.convert_to_tensor(self.data[self.window_size+1:]),(1,self.window_size)))\n\
+      \        \t\t\tself.model.fit(tf.convert_to_tensor(self.inputs),tf.convert_to_tensor(np.divide(self.labels,self.window_size)),\
+      \ epochs=150, batch_size=32, verbose=0)\n        \t\t\t\n        \t\t\tself.train\
+      \ = False\n        \t\t\tprint(self.model.summary())\n        \t\tinput_data\
+      \ = tf.convert_to_tensor(self.data[self.window_size+1:])\n        \t\tinput_data\
+      \ = tf.reshape(input_data , (1,self.window_size)) \n        \t\tprediction =\
+      \ self.model.predict(input_data)\n        \t\tprint('history: ', self.data[self.window_size+1:],\
+      \ ' prediction: ',prediction)\n        \t\tprint(tf.squeeze(prediction))\n \
+      \       \t\toutput_items[0][:]=prediction\n        if len(self.inputs) > self.history_length:\n\
+      \        \tself.data_set_full = True\n\n        return len(output_items[0])\n\
+      \       \n"
+    active_threshold: '0.9'
+    affinity: ''
+    alias: ''
+    comment: ''
+    history_length: '1000'
+    look_ahead: '100'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    number_of_GPUs: '1'
+    seed: '0'
+    slot_time: '1'
+    window_size: '100'
+  states:
+    _io_cache: ('Channle idle prediction', 'blk', [('seed', '0'), ('number_of_GPUs',
+      '1'), ('window_size', '10'), ('look_ahead', '10'), ('slot_time', '1'), ('history_length',
+      '1000'), ('active_threshold', '0.9')], [('0', 'complex', 1)], [('0', 'short',
+      1)], 'Embedded Python Block example - a simple multiply const', ['active_threshold',
+      'history_length', 'look_ahead', 'slot_time', 'window_size'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1180, -42]
     rotation: 0
     state: true
 - name: epy_block_1
@@ -922,258 +1533,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1185, 13]
-    rotation: 0
-    state: disabled
-- name: epy_block_3_0_0
-  id: epy_block
-  parameters:
-    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
-      \ GRC will instantiate the first class it finds\nto get ports and parameters\
-      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
-      \ them are required to have default values!\n\"\"\"\n\nimport os\nimport copy\n\
-      import sys      \nimport time\nimport schedule\nimport threading\nfrom datetime\
-      \ import datetime, timedelta\nfrom timeslot import Timeslot  \nimport numpy\
-      \ as np\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow as\
-      \ tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
-      from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
-      \ import Dense\n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\
-      \n\nfrom matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
-      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
-      \ QtWidgets\nHISTORY_BUFFER_LEN = 2000\n\nclass blk(gr.sync_block):  # other\
-      \ base classes are basic_block, decim_block, interp_block\n    \"\"\"Embedded\
-      \ Python Block example - a simple multiply const\"\"\"\n\n    def __init__(self,number_of_channels=7,seed\
-      \ = 0, num_GPU=0.0, active_threshold= 0.9, slot_time = 1, window_size = 5, initial_channel\
-      \ = 0, gamma = 1, learning_rate = 0.01, epsilon = 1):  # only default arguments\
-      \ here\n        \"\"\"arguments to this function show up as parameters in GRC\"\
-      \"\"\n        gr.sync_block.__init__(\n            self,\n            name='RL\
-      \ idle prediction agent',   # will show up in GRC\n            in_sig=[np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64,np.complex64],\n\
-      \            out_sig=[np.uint16]\n        )\n        # if an attribute with\
-      \ the same name as a parameter is found,\n        # a callback is registered\
-      \ (properties work, too).\n        \n        #initailize tensorflow and GPU\
-      \ usage\n        print('Tensorflow version: ', tf.__version__)\n        gpus\
-      \ = tf.config.experimental.list_physical_devices(\"GPU\")\n        print('Number\
-      \ of GPUs available :', len(gpus))\n        \n        if num_GPU < len(gpus):\n\
-      \        \ttf.config.experimental.set_visible_devices(gpus[num_GPU], 'GPU')\n\
-      \        \ttf.config.experimental.set_memory_growth(gpus[num_GPU], True)\n \
-      \       \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
-      \t\n        #initialize Channel sensing\n        self.active_threshold = active_threshold\n\
-      \        self.number_of_channels = number_of_channels\n        if (self.number_of_channels+1)%2!=0:\n\
-      \        \tprint('/!\\ Please enter an even number of channels')\n        self.channels\
-      \ = np.zeros(self.number_of_channels)\n        self.slot_time = slot_time\n\
-      \        self.last_datetime = datetime.now()\n        self.window_size = window_size\n\
-      \        self.grid = np.zeros((self.window_size, self.number_of_channels))\n\
-      \        self.initial_channel = initial_channel #change to random\n        self.grid_flag\
-      \ = 0\n        self.channel_decision = self.initial_channel\n        \n    \
-      \    self.collision = 0\n        self.total_error = 0 \n        self.total_count\
-      \ = 1 \n        #initialize DQN env\n        #self.dq_env = self.DQEnv(self.number_of_channels,\
-      \ self.window_size, False, self.grid.T)\n\n        #initialize DQN Neural Network\n\
-      \        self.gamma = gamma\n        self.learning_rate = learning_rate\n  \
-      \      self.actions_number = self.number_of_channels\n        self.epsilon =\
-      \ epsilon\n        self.nb_trainings = 300\n        self.loss = []  # Keep trak\
-      \ of the losses\n        self.channel_decision = self.initial_channel\n    \
-      \    self.train_flag = False\n        self.done = False\n        \n        self.agent_dq\
-      \ = self.DQAgent(self.number_of_channels, self.learning_rate, self.gamma)\n\
-      \        #sensed_ch, curr_ch, end = self.dq_env.get_init_state()\n        #print('##################################')\n\
-      \        #print('ENV initial state:')\n        #print('State: ', sensed_ch,',\
-      \ Current Channel: ', curr_ch)\n        #print('##################################')\n\
-      \      \n\n    def work(self, input_items, output_items):       \t\n       \
-      \ #Check slot time\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
-      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
-      \ weeks=0):\n            #Sample and mark channels activity\n            for\
-      \ i in range(0,np.size(input_items,0)):\n            \t#Energy detected during\
-      \ time slot, mark as occupied \n            \tif (np.mean(abs(input_items[i][:]))>self.active_threshold):\n\
-      \            \t\tself.channels[i] = 1\n            for j in range (np.size(self.channels)):\
-      \ self.channels[j] = np.abs(self.channels[j]-1)#flip ones and zeros\n      \
-      \      print(self.channels,'    ', datetime.now())   \n            #when training\
-      \ is done, make a decision\n            if self.done == True:\n            \t\
-      state = [self.channels.astype(np.float32), self.dq_env.one_hot(self.channel_decision,\
-      \ self.number_of_channels), 0]\n            \tself.channel_decision = self.agent_dq.choose_action(state,\
-      \ 0)# epsilon = 0 only expoiltation wehn not training\n            \tself.total_count\
-      \ += 1\n            \tself.total_ratio = (self.total_error)/self.total_count\n\
-      \            \tprint('CH: ',self.channels)\n            \ttemp = np.zeros(np.size(self.channels))\n\
-      \            \ttemp[self.channel_decision]=1\n            \tprint('DC: ',temp)\n\
-      \            \tprint('count: ', self.total_count, ' Errors: ', self.total_error,\
-      \ ' ratio: ',self.total_ratio)\n         \t\n            \tif self.channels[self.channel_decision]\
-      \ == 0:\n            \t\tself.collision += 1             \n            self.grid\
-      \ = self.make_grid(self.grid,(self.channels))\n            self.last_datetime\
-      \ = datetime.now()\n            self.channels = np.zeros(self.number_of_channels)\n\
-      \            #print(self.grid)\n            \n            self.grid_flag +=\
-      \ 1\n        output_items[0][:]= self.channel_decision      \n        if self.collision\
-      \ == 1:\n        \tself.total_error += 1\n        \tself.collision = 0\n   \
-      \     \t#self.grid_flag = self.window_size+1\n        \t\n\n        \t\n   \
-      \     #Full window sized grid\n        if (self.grid_flag == self.window_size+1):\
-      \ \n\t\t\n        \t#initialize DQN env\n        \tself.dq_env = self.DQEnv(self.number_of_channels,\
-      \ self.window_size, self.initial_channel, self.grid.T)\n\t\n\t\t# Run 200 episodes\n\
-      \        \tfor i in range(HISTORY_BUFFER_LEN):\n                    \n     \
-      \               self.dq_env.initialize()\n                    \n           \
-      \         state = self.dq_env.get_init_state()\n                    action =\
-      \ self.agent_dq.choose_action(state, self.epsilon)\n                    reward,\
-      \ new_state = self.dq_env.run(action)\n\t    \n                    self.agent_dq.insert_history(state,\
-      \ action, reward, new_state) # Insert state, action, reward, new state in history\
-      \ \n\t    \n                    # While it's not the end of the episode\n  \
-      \                  while new_state[2]==0 :\n                    \tstate = new_state\n\
-      \                    \taction = self.agent_dq.choose_action(state, self.epsilon)\n\
-      \                    \treward, new_state = self.dq_env.run(action)\n\t\t\n \
-      \                   \tself.agent_dq.insert_history(state, action, reward, new_state)\
-      \ # Insert state, action, reward, new state in history\n        \t\n       \
-      \ \tself.train_flag = True                      \t\n        \tprint('Replay\
-      \ buffer History populated')\n        \t                 \t \n\n        \t\n\
-      \        \t\n\n        if self.train_flag == True:\n\t        print('Training...')\n\
-      \        \tself.train_flag = False\n        \t\n        \tfor i in range(self.nb_trainings):\n\
-      \        \t\tself.dq_env.initialize()\n        \t\tstate = self.dq_env.get_init_state()\n\
-      \    \n        \t\taction = self.agent_dq.choose_action(state, self.epsilon)\n\
-      \        \t\treward, new_state = self.dq_env.run(action)\n        \t\tself.agent_dq.insert_history(state,\
-      \ action, reward, new_state) # Insert state, action, reward, new state in history\
-      \ \n        \t\tself.agent_dq.learn(64) # Each time we store a new history,\
-      \ we perform a training on random data\n    \n        \t\t# While it's not the\
-      \ end of the episode\n        \t\twhile new_state[2]==0 :\n        \t\t\tstate\
-      \ = new_state\n        \t\t\taction = self.agent_dq.choose_action(state, self.epsilon)\n\
-      \        \t\t\treward, new_state = self.dq_env.run(action)\n        \t\t\tself.agent_dq.insert_history(state,\
-      \ action, reward, new_state) # Insert state, action, reward, new state in history\
-      \ \n        \t\t\tself.agent_dq.learn(64) # Each time we store a new history,\
-      \ we perform a training on random data\n    \n        \t\tself.loss.append(tf.reduce_mean(self.agent_dq.loss).numpy())\
-      \ #Save the losses for future visualization\n        \t\t\t#Every 10 iterations\
-      \ we copy the parameters of the online DQN to the offline DQN\n        \t\t\
-      if (i+1)%10 == 0:\n        \t\t\tself.agent_dq.copy_parameters()\n        \t\
-      \t\tprint((i+1), end=', ')\n        \tself.done = True\n        \t#plt.semilogy(np.arange(len(self.loss)),\
-      \ self.loss)\n        \t#plt.show()\n        \tself.evaluate_dq_agent(self.agent_dq\
-      \ , self.dq_env.grid)\n        return len(output_items[0])\n        \n\n   \
-      \ \n    \n    class DQEnv():\n    \tdef __init__(self, nb_channels = 7, nb_states=5,\
-      \ initial_state = 0 , grid = []):\n        \n\t    \tif (nb_channels+1)%2!=0:\n\
-      \t    \t\tprint('/!\\ Please enter an even number of channels')\n          \
-      \  \n\t    \tself.nb_ch = nb_channels\n\t    \tself.nb_states = nb_states\n\
-      \        \n\t    \tself.grid = grid\n\t    \tprint ('env grid:')\n\t    \tprint(self.grid)\n\
-      \t    \tself.init_state = [int(initial_state), int(self.nb_states-1)]\n\t  \
-      \  \tself.ch_state = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\
-      \t    \tself.sent_mess = 0\n        \n\t    \tprint('This environment has '\
-      \ + str(self.nb_ch) +' different channels')\n        \n    \tdef run(self, action):\n\
-      \        \n\t    \tself.sent_mess += 1\n        \n\t    \tself.ch_state  = (self.ch_state\
-      \ + 1)%self.nb_states\n        \n\t    \tself.curr_ch = action\n\t    \t\n\t\
-      \    \treward = np.abs(self.grid[self.curr_ch, self.ch_state])\n        \n\t\
-      \    \tif self.sent_mess != self.nb_states: \n\t    \t\tend = 0\n\t    \telse\
-      \ :\n\t    \t\tend = 1\n        \n\t    \treturn(reward, [self.grid[:, self.ch_state],\
-      \ self.one_hot(self.curr_ch, self.nb_ch), end])\n    \n    \tdef get_init_state(self):\n\
-      \t    \treturn [self.grid[:, self.init_state[1]], self.one_hot(self.init_state[0],\
-      \ self.nb_ch), 0]\n    \n    \tdef initialize(self):\n\t    \tself.ch_state\
-      \ = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\t    \t\
-      self.sent_mess = 0\n        \n    \tdef one_hot(self, index, depth):\n\t   \
-      \ \toh = np.zeros(depth, dtype=np.float32)\n\t    \toh[index] = 1\n\t    \t\
-      return oh\n    \n    \n    class DQAgent():\n    \tdef __init__(self, nb_channels,\
-      \ learning_rate, gamma):\n    \t\tself.nb_ch = nb_channels\n    \t\tself.nb_actions\
-      \ = nb_channels\n    \t\tself.gamma = gamma\n    \t\tself.learning_rate = learning_rate\n\
-      \    \t\t\n    \t\tself.history_length = HISTORY_BUFFER_LEN\n    \t\tself.history\
-      \ = [[]for i in range(self.history_length)]\n    \t\tself.history_idx = 0\n\
-      \    \t\t\n    \t\t#Create and initialize the online DQN\n    \t\tself.DQN_online\
-      \ = tf.keras.models.Sequential([Dense(2*self.nb_ch, activation='relu'), Dense(self.nb_actions,\
-      \ activation='softplus') #Outputs positive values \n    \t\t])\n    \t\tself.DQN_online.build(input_shape=(None,\
-      \ self.nb_ch*2)) #Build the model to create the weights\n    \t\t\n    \t\t\
-      #Create and initialize the offline DQN\n    \t\tself.DQN_offline = tf.keras.models.Sequential([Dense(2*self.nb_ch,\
-      \ activation='relu'), Dense(self.nb_actions, activation='softplus') #Outputs\
-      \ positive values\n    \t\t])\n    \t\tself.DQN_offline.build(input_shape=(None,\
-      \ self.nb_ch*2)) #Build the model to create the weights\n    \t\t\n    \t\t\
-      self.copy_parameters() #Copy the weights of the online network to the offline\
-      \ network\n    \t\t\n    \t\tself.loss_func = tf.keras.losses.MSE\n    \t\t\
-      self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)\n        \n  \
-      \      \n    \tdef choose_action(self, state, epsilon):\n    \t\t\"\"\"Implements\
-      \ an epsilon-greedy policy\"\"\"\n    \t\tsensed_ch, curr_ch, end = state\n\
-      \    \t\t# Explore ?\n    \t\tif np.random.uniform(size=1) < epsilon :\n   \
-      \ \t\t\taction =  np.random.randint(low = 0, high = np.size(sensed_ch)) #######\
-      \ Take one action randomly {0, 1, 2, 3, 4, 5, 6} with probability epsilon\n\
-      \    \t\t\t\n        \n    \t\t#Choose the best action\n    \t\telse:    \n\
-      \    \t\t\t#sensed_ch, curr_ch, end = state #Decomposes the state\n    \t\t\t\
-      '''\n    \t\t\t* The shapes are :\n    \t\t\t- curr_ch : [self.nb_ch]\n    \t\
-      \t\t- sensed_ch : [self.nb_ch]\n    \t\t\t- end : one integer\n    \t\t\t'''\n\
-      \    \t\t\tDQN_input = tf.concat([sensed_ch, curr_ch], axis=0)[tf.newaxis, :]\
-      \ #Create a state vector, which is the DQN input. Shape : [1, 2*self.nb_ch]\n\
-      \    \t\t\toutputs = self.DQN_online(DQN_input).numpy() #Get the predicted Q\
-      \ values corresponding to the 3 actions\n    \t\t\taction = np.argmax(outputs)#-1\
-      \ #Take the action that has the highest predicted Q value (0, 1, 2, 3, 4, 5,\
-      \ 6)\t\t\t\n    \t\t\t#print(outputs)\n    \t\treturn action\n    \n    \tdef\
-      \ learn(self, batch_size):\n    \t\t\"\"\"Sample experiences from the history\
-      \ and performs SGD\"\"\"\n    \t\t\n    \t\t# Samples random experiences from\
-      \ the history\n    \t\tidx = np.random.choice(range(self.history_length), batch_size,\
-      \ replace=False) # Create random indexes \n    \t\trdm_exp =  [self.history[i]\
-      \ for i in idx] # Take experiences corresponding to the random indexes\n   \
-      \ \t\t\n    \t\t# Each experience is written in this format : [state_vec, end,\
-      \ action, reward, n_state_vec, n_end] (see insert_history method)\n    \t\t\n\
-      \    \t\t# Create 6 batches : states_vec, end_boolean, actions, rewards, new\
-      \ states_vec, new_end_boolean\n    \t\tstates_vec = np.array([rdm_exp[i][0]\
-      \ for i in range(batch_size)]) # Shape : [Bs, 2*self.nb_ch]\n    \t\tend = np.array([rdm_exp[i][1]\
-      \ for i in range(batch_size)]) # Shape : [Bs]\n    \t\tactions = np.array([rdm_exp[i][2]\
-      \ for i in range(batch_size)]) # Shape : [BS]\n    \t\trewards = np.array([rdm_exp[i][3]\
-      \ for i in range(batch_size)]) # Shape : [BS]\n    \t\tn_states_vec = np.array([rdm_exp[i][4]\
-      \ for i in range(batch_size)]) # Shape : [Bs, 2*self.nb_ch]\n    \t\tn_end =\
-      \ np.array([rdm_exp[i][5] for i in range(batch_size)]) # Shape : [BS]\n    \t\
-      \t\n    \t\t#Compute the best q_value for the new states\n    \t\tmax_n_q_values\
-      \ = tf.reduce_max(self.DQN_offline(n_states_vec), axis=1).numpy()\n\n    \t\t\
-      with tf.GradientTape() as tape:\n    \t\t\t#Forward pass through the online\
-      \ network to predict the q_values\n    \t\t\tpred_q_values = self.DQN_online(states_vec)\n\
-      \    \t\t\t\n    \t\t\t# Compute targets\n    \t\t\ttargets = pred_q_values.numpy()\n\
-      \    \t\t\ttargets[np.arange(targets.shape[0]), actions]= rewards + (1-n_end)\
-      \ * self.gamma * max_n_q_values\n    \t\t\t\n    \t\t\t# Evaluate the loss\n\
-      \    \t\t\tself.loss = self.loss_func(pred_q_values, targets)\n        \n  \
-      \  \t\t# Compute gradients and perform the gradient descent\n    \t\tgradients\
-      \ = tape.gradient(self.loss, self.DQN_online.trainable_weights)\n    \t\tself.optimizer.apply_gradients(zip(gradients,\
-      \ self.DQN_online.trainable_weights))  \n    \n    \tdef insert_history(self,\
-      \ state, action, reward, n_state):\n    \t\t\"\"\"Insert experience in history\"\
-      \"\"\n        \n    \t\tsensed_ch, curr_ch, end = state\n    \t\tstate_vec =\
-      \ np.concatenate([sensed_ch, curr_ch], axis=0) # Create the state vector for\
-      \ the state\n        \n    \t\tn_sensed_ch, n_curr_ch, n_end = n_state\n   \
-      \ \t\tn_state_vec = np.concatenate([n_sensed_ch, n_curr_ch], axis=0) # Create\
-      \ the state vector for the new state\n\n    \t\tself.history[self.history_idx]\
-      \ = [state_vec, end, action, reward, n_state_vec, n_end] # Insert everything\
-      \ in the history\n        \n    \t\tself.history_idx = (self.history_idx+1)%self.history_length\
-      \ # Move the history_idx by one\n    \n    \tdef copy_parameters(self):\n  \
-      \  \t\t\"\"\"Copy the parameters of the online network to the offline network\"\
-      \"\"\n\n    \t\tweights = self.DQN_online.get_weights()\n    \t\tself.DQN_offline.set_weights(weights)\n\
-      \n\t\t\n\n    def make_grid(self,grid,channels):\n        grid = np.append(grid,\
-      \ channels).reshape(self.window_size+1,self.number_of_channels)\n        grid\
-      \ = np.delete(grid, 0, 0)\n        grid = grid.reshape(self.window_size,self.number_of_channels)\n\
-      \        return grid.astype(np.float32)\n    \n    def evaluate_dq_agent(self,\
-      \ agent, grid):\n\n        action_history=[]\n        tot_reward = 0\n    \n\
-      \        self.dq_env.initialize()\n        first_state = self.dq_env.get_init_state()\n\
-      \        action = agent.choose_action(first_state, epsilon = 0)\n        action_history.append(action)\n\
-      \        reward, new_state = self.dq_env.run(action)\n        tot_reward +=\
-      \ reward\n    \n        for j in range(grid.shape[1]-1):\n            state\
-      \ = new_state\n            action = agent.choose_action(state, epsilon = 0)\n\
-      \            action_history.append(action)\n            reward, new_state =\
-      \ self.dq_env.run(action)\n            tot_reward += reward\n            \n\
-      \        choosen_channels = [(grid.shape[0]-1)/2]\n        for i in range(len(action_history)):\n\
-      \        \tchoosen_channels.append((choosen_channels[i]+action_history[i])%grid.shape[0])\n\
-      \        choosen_channels = choosen_channels[1:]\n        #plt.imshow(np.flip(grid,\
-      \ axis=0), origin=\"lower\", cmap='gray', vmin=0, vmax=1)\n        #for i in\
-      \ range(len(choosen_channels)):\n        #\tplt.scatter(i, grid.shape[0]-1-choosen_channels[i],\
-      \ color='r')\n        #plt.show()\n        #print(str(int(tot_reward))+'/'+str(grid.shape[1])+'\
-      \ packets have been transmitted')\n        return tot_reward\n"
-    active_threshold: '0.9'
-    affinity: ''
-    alias: ''
-    comment: ''
-    epsilon: '0.25'
-    gamma: '0.6'
-    initial_channel: '0'
-    learning_rate: '0.01'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_GPU: '1'
-    number_of_channels: '7'
-    seed: '1'
-    slot_time: '1'
-    window_size: '12800'
-  states:
-    _io_cache: ('RL idle prediction agent', 'blk', [('number_of_channels', '7'), ('seed',
-      '0'), ('num_GPU', '0.0'), ('active_threshold', '0.9'), ('slot_time', '1'), ('window_size',
-      '5'), ('initial_channel', '0'), ('gamma', '1'), ('learning_rate', '0.01'), ('epsilon',
-      '1')], [('0', 'complex', 1), ('1', 'complex', 1), ('2', 'complex', 1), ('3',
-      'complex', 1), ('4', 'complex', 1), ('5', 'complex', 1), ('6', 'complex', 1)],
-      [('0', 'short', 1)], 'Embedded Python Block example - a simple multiply const',
-      ['active_threshold', 'epsilon', 'gamma', 'initial_channel', 'learning_rate',
-      'number_of_channels', 'slot_time', 'window_size'])
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1219, 780]
+    coordinate: [1192, 1048]
     rotation: 0
     state: enabled
 - name: epy_block_4
@@ -1398,7 +1758,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1505, 90]
+    coordinate: [1523, 1116]
     rotation: 0
     state: true
 - name: qtgui_number_sink_0_0
@@ -1444,7 +1804,7 @@ blocks:
     max: '7'
     min: '0'
     name: '"idle for: "'
-    nconnections: '1'
+    nconnections: '7'
     type: short
     unit1: ''
     unit10: ''
@@ -1461,7 +1821,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1488, 262]
+    coordinate: [1499, 9]
     rotation: 0
     state: true
 - name: qtgui_waterfall_sink_x_0
@@ -1557,37 +1917,42 @@ connections:
 - [analog_sig_source_x_0_0_0_0_0_0_0, '0', epy_block_4, '6']
 - [blocks_add_xx_0_0_0_0_0_0_0_0, '0', qtgui_waterfall_sink_x_0, '0']
 - [channels_channel_model_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '0']
+- [channels_channel_model_0, '0', epy_block_0_0_0_0_0_0_0, '0']
 - [channels_channel_model_0, '0', epy_block_3_0, '0']
-- [channels_channel_model_0, '0', epy_block_3_0_0, '0']
 - [channels_channel_model_0, '0', qtgui_freq_sink_x_0, '0']
 - [channels_channel_model_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '1']
+- [channels_channel_model_0_0, '0', epy_block_0_0_0_0_0_0, '0']
 - [channels_channel_model_0_0, '0', epy_block_3_0, '1']
-- [channels_channel_model_0_0, '0', epy_block_3_0_0, '1']
 - [channels_channel_model_0_0, '0', qtgui_freq_sink_x_0, '1']
 - [channels_channel_model_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '2']
+- [channels_channel_model_0_0_0, '0', epy_block_0_0_0_0_0, '0']
 - [channels_channel_model_0_0_0, '0', epy_block_3_0, '2']
-- [channels_channel_model_0_0_0, '0', epy_block_3_0_0, '2']
 - [channels_channel_model_0_0_0, '0', qtgui_freq_sink_x_0, '2']
 - [channels_channel_model_0_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '3']
+- [channels_channel_model_0_0_0_0, '0', epy_block_0_0_0, '0']
+- [channels_channel_model_0_0_0_0, '0', epy_block_0_0_0_0, '0']
 - [channels_channel_model_0_0_0_0, '0', epy_block_3_0, '3']
-- [channels_channel_model_0_0_0_0, '0', epy_block_3_0_0, '3']
 - [channels_channel_model_0_0_0_0, '0', qtgui_freq_sink_x_0, '3']
 - [channels_channel_model_0_0_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '4']
 - [channels_channel_model_0_0_0_0_0, '0', epy_block_3_0, '4']
-- [channels_channel_model_0_0_0_0_0, '0', epy_block_3_0_0, '4']
 - [channels_channel_model_0_0_0_0_0, '0', qtgui_freq_sink_x_0, '4']
 - [channels_channel_model_0_0_0_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '5']
-- [channels_channel_model_0_0_0_0_0_0, '0', epy_block_0, '0']
+- [channels_channel_model_0_0_0_0_0_0, '0', epy_block_0_0, '0']
 - [channels_channel_model_0_0_0_0_0_0, '0', epy_block_3_0, '5']
-- [channels_channel_model_0_0_0_0_0_0, '0', epy_block_3_0_0, '5']
 - [channels_channel_model_0_0_0_0_0_0, '0', qtgui_freq_sink_x_0, '5']
 - [channels_channel_model_0_0_0_0_0_0_0, '0', blocks_add_xx_0_0_0_0_0_0_0_0, '6']
+- [channels_channel_model_0_0_0_0_0_0_0, '0', epy_block_0, '0']
 - [channels_channel_model_0_0_0_0_0_0_0, '0', epy_block_3_0, '6']
-- [channels_channel_model_0_0_0_0_0_0_0, '0', epy_block_3_0_0, '6']
 - [channels_channel_model_0_0_0_0_0_0_0, '0', qtgui_freq_sink_x_0, '6']
 - [channels_channel_model_0_1, '0', qtgui_freq_sink_x_0, '7']
 - [channels_channel_model_0_1, '0', qtgui_waterfall_sink_x_0, '1']
-- [epy_block_0, '0', qtgui_number_sink_0_0, '0']
+- [epy_block_0, '0', qtgui_number_sink_0_0, '6']
+- [epy_block_0_0, '0', qtgui_number_sink_0_0, '5']
+- [epy_block_0_0_0, '0', qtgui_number_sink_0_0, '4']
+- [epy_block_0_0_0_0, '0', qtgui_number_sink_0_0, '3']
+- [epy_block_0_0_0_0_0, '0', qtgui_number_sink_0_0, '2']
+- [epy_block_0_0_0_0_0_0, '0', qtgui_number_sink_0_0, '1']
+- [epy_block_0_0_0_0_0_0_0, '0', qtgui_number_sink_0_0, '0']
 - [epy_block_1, '0', channels_channel_model_0, '0']
 - [epy_block_1, '1', channels_channel_model_0_0, '0']
 - [epy_block_1, '2', channels_channel_model_0_0_0, '0']
@@ -1611,8 +1976,6 @@ connections:
 - [epy_block_1_1, '6', channels_channel_model_0_0_0_0_0_0_0, '0']
 - [epy_block_3_0, '0', epy_block_4, '7']
 - [epy_block_3_0, '0', qtgui_number_sink_0, '0']
-- [epy_block_3_0_0, '0', epy_block_4, '7']
-- [epy_block_3_0_0, '0', qtgui_number_sink_0, '0']
 - [epy_block_4, '0', channels_channel_model_0_1, '0']
 
 metadata:
