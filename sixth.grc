@@ -1419,7 +1419,7 @@ blocks:
       \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
       \ QtWidgets\n\nimport abc\nfrom tf_agents.networks import q_network\nfrom tf_agents.agents.dqn\
       \ import dqn_agent\n\n\nHISTORY_BUFFER_LEN = 120\nDEFAULT_WINDOW_SIZE = 32\n\
-      EPISODE_LENGTH = 16\nNUMBER_OF_EPISODES = 200\n\nclass blk(gr.sync_block): \
+      EPISODE_LENGTH = 10\nNUMBER_OF_EPISODES = 200\n\nclass blk(gr.sync_block): \
       \ # other base classes are basic_block, decim_block, interp_block\n    \"\"\"\
       Embedded Python Block example - a simple multiply const\"\"\"\n\n    def __init__(self,number_of_channels=7,seed\
       \ = 0, num_GPU=0.0, active_threshold= 0.9, slot_time = 1, window_size = 5, initial_channel\
@@ -1455,8 +1455,8 @@ blocks:
       \  self.batch_size = 64\n        self.log_interval = 200\n        self.num_eval_episodes\
       \ = 10\n        self.eval_interval = 1000\n        #############################################################\
       \        \n        self.loss = []  # Keep trak of the losses\n        self.channel_decision\
-      \ = self.initial_channel\n        self.train_flag = False\n        self.done\
-      \ = False\n        self.hist =0\n        '''\n        self.agent_dq = self.DQAgent(self.number_of_channels,\
+      \ = 0 #wait\n        self.train_flag = False\n        self.done = False\n  \
+      \      self.hist =0\n        '''\n        self.agent_dq = self.DQAgent(self.number_of_channels,\
       \ self.learning_rate, self.gamma)\n        #sensed_ch, curr_ch, end = self.dq_env.get_init_state()\n\
       \        #print('##################################')\n        #print('ENV initial\
       \ state:')\n        #print('State: ', sensed_ch,', Current Channel: ', curr_ch)\n\
@@ -1465,10 +1465,11 @@ blocks:
       \        self.channel = []\n        \n        self.environment = self.transmit_wait(0,self.window_size,0)\
       \ ##init state to 0 , window, end to 0\n        self.agent = self.DQN_agent(self.learning_rate,\
       \ self.gamma) #init agent spaces\n\n    def work(self, input_items, output_items):\
-      \       \t\n        #Check slot time\n        if (datetime.now() - self.last_datetime)\
-      \ > timedelta(days=0, seconds=self.slot_time, microseconds=0, milliseconds=0,\
-      \ minutes=0, hours=0, weeks=0):\n            \t\n            \t#Sample and mark\
-      \ channel activity\n            \tactive = np.mean(abs(input_items[0][:]))>self.active_threshold\n\
+      \       \t\n        output_items[0][:]= self.channel_decision\n        #Check\
+      \ slot time\n        if (datetime.now() - self.last_datetime) > timedelta(days=0,\
+      \ seconds=self.slot_time, microseconds=0, milliseconds=0, minutes=0, hours=0,\
+      \ weeks=0):\n            \t\n            \t#Sample and mark channel activity\n\
+      \            \tactive = np.mean(abs(input_items[0][:]))>self.active_threshold\n\
       \            \tself.sensed = active\n            \t'''\n            \tif active:\n\
       \            \t\tself.channel.append(1)\n            \telse:\n            \t\
       \tself.channel.append(0)\n            \t\n            \t   \n            \t\
@@ -1488,10 +1489,10 @@ blocks:
       \n            \tself.last_datetime = datetime.now()     \n            \t\n \
       \           \tif self.done == True:\n            \t\tif self.environment._state[2]==0\
       \ :\n            \t\t\tself.channel_decision = self.agent.choose_action(self.environment._state,\
-      \ 0)\n            \t\t\taction = self.channel_decision\n            \t\t\toutput_items[0][:]=\
-      \ self.channel_decision    \n            \t\t\tprint ('transmit: ', self.channel_decision,\
-      \ 'state:  ',  self.environment._state   )\n            \t\t\treward, new_state,\
-      \ end = self.environment.step(action, int(active))\n            \t\t\tself.environment._state\
+      \ 0)\n            \t\t\taction = self.channel_decision\n            \t\t\t \
+      \   \n            \t\t\tprint ('transmit: ', self.channel_decision, 'state:\
+      \  ',  self.environment._state   )\n            \t\t\treward, new_state, end\
+      \ = self.environment.step(action, int(active))\n            \t\t\tself.environment._state\
       \ = new_state \n            \t\telse:  \n            \t\t\tself.environment.reset()\
       \          \t\n            \t\n            \telse:\n            \t\tif self.environment._state[2]==0\
       \ :\n            \t\t\tstate = self.environment._state\n            \t\t\tprint('state:',\
@@ -1513,7 +1514,7 @@ blocks:
       \            \t\t\treward, new_state , end = self.environment.step(action, int(active))\n\
       \            \t\t\t\n            \t\t\tself.agent.insert_history(self.environment._state,\
       \ action, reward, new_state) # Insert S,A,R,S' history \n            \t\t\t\
-      self.agent.learn(32) # Each time we store a new history, we perform a training\
+      self.agent.learn(16) # Each time we store a new history, we perform a training\
       \ on random data\n            \t\t\tself.environment._state = new_state\n  \
       \          \t\t\tscore = reward\n            \t\t\tif new_state[2] == 1:\n \
       \           \t\t\t\tdone = True\n            \t\tprint(' Episode:{} Score:{}'\
@@ -1782,7 +1783,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    epsilon: '1'
+    epsilon: '0.4'
     gamma: '0.6'
     initial_channel: '0'
     learning_rate: '0.01'
