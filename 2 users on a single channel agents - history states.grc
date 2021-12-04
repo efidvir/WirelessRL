@@ -1,0 +1,851 @@
+options:
+  parameters:
+    author: ''
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: seventh
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Not titled yet
+    window_size: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '32000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [184, 12]
+    rotation: 0
+    state: enabled
+- name: analog_sig_source_x_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '1000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [-30, 114]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_0_1_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '1000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1289, 120]
+    rotation: 0
+    state: true
+- name: channels_channel_model_0
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: ''
+    epsilon: '1.0'
+    freq_offset: '0.001'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: '0.1'
+    seed: '0'
+    taps: 1.0 + 1.0j
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [493, 86]
+    rotation: 0
+    state: true
+- name: epy_block_1_1
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\n\nimport numpy as np\n\
+      import time\nimport schedule\nimport threading\nfrom datetime import datetime,\
+      \ timedelta\nfrom timeslot import Timeslot\nfrom gnuradio import gr\n\nclass\
+      \ blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block\n\
+      \    \"\"\"Embedded Python Block example - a simple multiply const\"\"\"\n \
+      \   def __init__(self, example_param=1.0, poisson_lambda=5.0, interval = 32000):\
+      \  #change to numpy array size of inputs. only default arguments here\n    \
+      \    \"\"\"arguments to this function show up as parameters in GRC\"\"\"\n \
+      \       gr.sync_block.__init__(\n            self,\n            name='Channels\
+      \ emulator',   # will show up in GRC\n            in_sig=[np.complex64],\n \
+      \           out_sig=[np.complex64]\n        )\n        # if an attribute with\
+      \ the same name as a parameter is found,\n        # a callback is registered\
+      \ (properties work, too).\n        self.mus = []\n        self.example_param\
+      \ = example_param\n        self.poisson_lambda = poisson_lambda\n        stop_run_continuously\
+      \ = self.run_continuously() # enable therding for scheduler\n        self.interval\
+      \ = interval\n        self.active = [False]\n        self.channels = [0]#cahnge\
+      \ to size of inputs\n        for j in range(0,len(self.channels)): #cahnge to\
+      \ synchronus\n        \tself.channels[j] = datetime.now()\n        \tself.mus\
+      \ = np.append(self.mus, 1+int(np.random.exponential(scale = j)))\n        print\
+      \ (self.mus)        \t\n        \n    def work(self, input_items, output_items):\n\
+      \        \"\"\"example: multiply with constant\"\"\"\n        for i in range(0,np.size(input_items,0)):\n\
+      \        \t\n        \tif datetime.now() - self.channels[i] > timedelta(days=0,\
+      \ seconds=self.mus[i], microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):\
+      \  #if time passed\n        \t\t#print(self.active)\n        \t\tif self.active[i]\
+      \ == True:\n        \t\t\tif 1 + np.random.exponential(scale = i) > i:\n   \
+      \     \t\t\t\tself.active[i] = False\n        \t\telse: \n\t        \t\tself.active[i]\
+      \ = True\n        \t\tself.channels[i] = datetime.now() \n        \tif self.active[i]\
+      \ == True:\n        \t\tself.turnon(i,input_items, output_items)\n        \t\
+      else:\n        \t\tself.turnoff(i,input_items, output_items)\n        \t\t\n\
+      \        \t\t\t\n        \t\n        return len(output_items[0])\n\t\n    def\
+      \ turnon(self,i, input_items, output_items):\n    \toutput_items[i][:] = input_items[i]\
+      \ \n    \t\n    def turnoff(self,i, input_items, output_items):\n    \toutput_items[i][:]\
+      \ = input_items[i] * 0\n    \t\n    def run_continuously(interval=1):\n    \t\
+      cease_continuous_run = threading.Event()\n\n    \tclass ScheduleThread(threading.Thread):\n\
+      \    \t    def run(cls):\n\t            while not cease_continuous_run.is_set():\n\
+      \                        schedule.run_pending()\n                        time.sleep(interval)\n\
+      \    \tcontinuous_thread = ScheduleThread()\n    \tcontinuous_thread.start()\n\
+      \    \treturn cease_continuous_run\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    example_param: '1.0'
+    interval: samp_rate
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    poisson_lambda: '1.0'
+  states:
+    _io_cache: ('Channels emulator', 'blk', [('example_param', '1.0'), ('poisson_lambda',
+      '5.0'), ('interval', '32000')], [('0', 'complex', 1)], [('0', 'complex', 1)],
+      'Embedded Python Block example - a simple multiply const', ['example_param',
+      'interval', 'poisson_lambda'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [242, 128]
+    rotation: 0
+    state: enabled
+- name: epy_block_3_0_0_0_0_0_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\nfrom __future__ import\
+      \ absolute_import\nfrom __future__ import division\nfrom __future__ import print_function\n\
+      from tf_agents.environments import py_environment\nfrom tf_agents.environments\
+      \ import tf_environment\nfrom tf_agents.environments import tf_py_environment\n\
+      from tf_agents.environments import utils\nfrom tf_agents.specs import array_spec\n\
+      from tf_agents.environments import wrappers\nfrom tf_agents.environments import\
+      \ suite_gym\nfrom tf_agents.trajectories import time_step as ts\nimport os\n\
+      import copy\nimport sys      \nimport time\nimport schedule\nimport threading\n\
+      from datetime import datetime, timedelta\nfrom timeslot import Timeslot  \n\
+      import numpy as np\nimport matplotlib.pyplot as plt\nimport torch\nimport tensorflow\
+      \ as tf\nfrom gnuradio import gr\nimport pmt\nfrom tensorflow.keras import Model\n\
+      from tensorflow.keras.layers import Layer, Dense, Softmax\nfrom tensorflow.keras.layers\
+      \ import Dense\n\nfrom gym import Env\nfrom gym.spaces import Discrete, Box\n\
+      \n\nfrom matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
+      \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
+      \ QtWidgets\n\nimport abc\nfrom tf_agents.networks import q_network\nfrom tf_agents.agents.dqn\
+      \ import dqn_agent\n\n\nHISTORY_BUFFER_LEN = 40\nDEFAULT_WINDOW_SIZE = 32\n\
+      EPISODE_LENGTH = 20\nNUMBER_OF_EPISODES = 200\n\nclass blk(gr.sync_block): \
+      \ # other base classes are basic_block, decim_block, interp_block\n    \"\"\"\
+      Embedded Python Block example - a simple multiply const\"\"\"\n\n    def __init__(self,number_of_channels=7,seed\
+      \ = 0, num_GPU=0.0, active_threshold= 0.9, slot_time = 1, window_size = 5, initial_channel\
+      \ = 0, gamma = 1, learning_rate = 0.01, epsilon = 1):  # only default arguments\
+      \ here\n        \"\"\"arguments to this function show up as parameters in GRC\"\
+      \"\"\n        gr.sync_block.__init__(\n            self,\n            name='RL\
+      \ Transmit agent',   # will show up in GRC\n            in_sig=[np.complex64],\n\
+      \            out_sig=[np.uint16]\n        )\n        \n        self.message_port_register_out(pmt.intern('msg_out'))\n\
+      \        self.message_port_register_in(pmt.intern('msg_in'))\n        \n   \
+      \     # if an attribute with the same name as a parameter is found,\n      \
+      \  # a callback is registered (properties work, too).\n        \n        #initailize\
+      \ tensorflow and GPU usage\n        print('Tensorflow version: ', tf.__version__)\n\
+      \        gpus = tf.config.experimental.list_physical_devices(\"GPU\")\n    \
+      \    print('Number of GPUs available :', len(gpus))\n        \n        if num_GPU\
+      \ < len(gpus):\n        \ttf.config.experimental.set_visible_devices(gpus[num_GPU],\
+      \ 'GPU')\n        \ttf.config.experimental.set_memory_growth(gpus[num_GPU],\
+      \ True)\n        \tprint('Only GPU number', num_GPU, 'used')\n        tf.random.set_seed(seed)\n\
+      \t\n        #initialize Channel sensing\n        self.active_threshold = active_threshold\n\
+      \        self.number_of_channels = number_of_channels\n        if (self.number_of_channels+1)%2!=0:\n\
+      \        \tprint('/!\\ Please enter an even number of channels')\n        self.channels\
+      \ = np.zeros(self.number_of_channels)\n        self.slot_time = slot_time\n\
+      \        self.last_datetime = datetime.now()\n        self.window_size = window_size\n\
+      \        self.grid = np.zeros((self.window_size, self.number_of_channels))\n\
+      \        self.initial_channel = initial_channel #change to random\n        self.window_flag\
+      \ = 0\n        self.channel_decision = self.initial_channel\n        \n    \
+      \    self.collision = 0\n        self.total_error = 0 \n        self.total_count\
+      \ = 1 \n        #initialize DQN env\n        #self.dq_env = self.DQEnv(self.number_of_channels,\
+      \ self.window_size, False, self.grid.T)\n\n        #initialize DQN Neural Network\n\
+      \        self.gamma = gamma\n        self.learning_rate = learning_rate\n  \
+      \      self.actions_number = 2\n        self.epsilon = epsilon\n        self.nb_trainings\
+      \ = 300\n        #############################################################\
+      \        \n        self.num_iterations  = 300\n        self.initial_collect_steps\
+      \ = 100\n        self.replay_buffer_max_length = HISTORY_BUFFER_LEN\n      \
+      \  self.batch_size = 64\n        self.log_interval = 200\n        self.num_eval_episodes\
+      \ = 10\n        self.eval_interval = 1000\n        #############################################################\
+      \        \n        self.loss = []  # Keep trak of the losses\n        self.channel_decision\
+      \ = 0 #wait\n        self.train_flag = False\n        self.done = False\n  \
+      \      self.hist =0\n        self.history_flag = False\n        self.init =\
+      \ True\n        \n        \n        \n        '''\n        self.agent_dq = self.DQAgent(self.number_of_channels,\
+      \ self.learning_rate, self.gamma)\n        #sensed_ch, curr_ch, end = self.dq_env.get_init_state()\n\
+      \        #print('##################################')\n        #print('ENV initial\
+      \ state:')\n        #print('State: ', sensed_ch,', Current Channel: ', curr_ch)\n\
+      \        #print('##################################')\n        '''\n       \
+      \ \n        \n        #############################################################\n\
+      \        self.channel = []\n        \n        \n        self.agent = self.DQN_agent(self.learning_rate,\
+      \ self.gamma, self.window_size) #init agent spaces\n\n    def work(self, input_items,\
+      \ output_items):       \t\n        output_items[0][:]= self.channel_decision\n\
+      \        \n        \n        #Check slot time\n        if (datetime.now() -\
+      \ self.last_datetime) > timedelta(days=0, seconds=self.slot_time, microseconds=0,\
+      \ milliseconds=0, minutes=0, hours=0, weeks=0):\n            \tif self.channel_decision\
+      \ == 1:\n            \t\tself.message_port_pub(pmt.intern('msg_out'), pmt.intern('1'))\n\
+      \            \telse:\n            \t\tself.message_port_pub(pmt.intern('msg_out'),\
+      \ pmt.intern('0'))\n            \t\n            \t#Sample and mark channel activity\n\
+      \            \tactive = np.mean(abs(input_items[0][:]))>self.active_threshold\n\
+      \            \tself.sensed = active\n            \t\n            \tif active:\n\
+      \            \t\tself.channel.append(1)\n            \telse:\n            \t\
+      \tself.channel.append(0)\n            \t\n            \t\n            \t\n \
+      \           \tself.window_flag += 1\n            \tself.last_datetime = datetime.now()\
+      \ \n            \t#Full window size reached? if yes, start training and slide\
+      \ window by slot\n            \tif (self.window_flag == self.window_size+1):\
+      \ \n            \t\tself.history_flag = True\n            \t\tself.channel.pop(0)\n\
+      \            \t\tself.window_flag -= 1\n       \n\t\t# Run 200 episodes\n  \
+      \          \t\n            \t\n            \t\n            \t#self.environment._state\
+      \ = [0,0,0]\n            \t\n            \t#action = self.agent.choose_action(state,\
+      \ self.epsilon) #choose action based on state (expolit) and epsilon (explore)\n\
+      \            \t#reward, new_state, end = self.environment.step(action, int(active))\n\
+      \            \t#end = new_state[2]\n    \n            \t#self.agent.insert_history(state,\
+      \ action, reward, new_state) # Insert state, action, reward, new state in history\
+      \ \n    \n            \t# While it's not the end of the episode\n          \
+      \  \t\n            \tif self.history_flag == True: #Fill history experiences\n\
+      \            \t\t\n            \t\tif self.init == True:\n\t            \t\t\
+      self.environment = self.transmit_wait(0,self.window_size,self.channel) ##init\
+      \ state to 0 , window, end to 0\n\t            \t\tself.init = False\n     \
+      \       \t\tif self.hist%HISTORY_BUFFER_LEN==0 and self.hist > 2*HISTORY_BUFFER_LEN:\n\
+      \            \t\t\tself.train_flag = True #retrain\n            \t\tif self.hist\
+      \ == HISTORY_BUFFER_LEN:\n            \t\t\tself.train_flag = True\n       \
+      \     \t\t\tself.hist += 1\n            \t\t\t\n            \t\t\t\n       \
+      \     \t\tself.environment._state  =    self.channel\n            \t\t    \n\
+      \t\t    \t\n            \t\tif self.done == True:\n            \t\t\taction\
+      \ = self.agent.choose_action(self.environment._state, 0)\n            \t\t\t\
+      self.channel_decision = int(np.random.randint(11) > action) \n            \t\
+      \t\tprint ('transmit: ', self.channel_decision, 'state:  ',  self.environment._state\
+      \   )\n            \t\t\t#reward, new_state, end = self.environment.step(action)#################\n\
+      \            \t\t\t\n\n            \t\telse: #traning not started - populate\
+      \ history\n            \t\t\tstate = self.environment._state\n            \t\
+      \t\tprint('state:', state)\n    \t\t\t\t\n            \t\t\t#transmit with probability\
+      \ <action>\n            \t\t\tprv_action = self.agent.choose_action(self.environment.prv_state,\
+      \ self.epsilon) #######ADD GLIE\n            \t\t\ttransmit_prob = np.random.randint(11)\n\
+      \            \t\t\tif transmit_prob > prv_action:\n            \t\t\t\tself.channel_decision\
+      \ = 1\n            \t\t\telse:\n            \t\t\t\tself.channel_decision =\
+      \ 0\n    \t\t\t\t\n            \t\t\treward = self.environment.step(prv_action,\
+      \ transmit_prob)\n\n            \t\t\tself.agent.insert_history(self.environment.prv_state,\
+      \ prv_action, reward, state) # Insert state, action, reward, new state in history\n\
+      \            \t\t\tself.hist += 1\n            \t\t\tprint('insert history ',\
+      \ self.hist, 'prvS',self.environment.prv_state,'A', prv_action,'R', reward,'SN',\
+      \ state)\n    \t\t\t\t\n            \t\tself.environment.prv_state = self.environment._state\
+      \ #slide\n\t       \n       \n       \n            \t\t\t\n        if self.train_flag\
+      \ == True:\t\n        \tprint('Replay buffer History populated')\n        \t\
+      self.agent.learn(20) # Each time we store a new history, we perform a training\
+      \ on random data\n        \t'''\n        \t#Feed env with initial schannel state\n\
+      \        \t#self.environment = self.transmit_wait(self.channel,self.window_size,0)\n\
+      \        \t#start traning  \n        \tfor episode in range(NUMBER_OF_EPISODES):\n\
+      \            \t\tself.environment._state = self.environment.reset()[1]\n   \
+      \         \t\tdone = False\n            \t\tscore = 0\n            \t\t\n  \
+      \          \t\twhile not done:\n            \t\t\taction = self.agent.choose_action(self.environment._state,\
+      \ self.epsilon)\n            \t\t\treward, new_state , end = self.environment.step(action,\
+      \ int(active))###############\n            \t\t\t\n            \t\t\tself.agent.insert_history(self.environment.prv_state,\
+      \ action, reward, self.environment._state) # Insert S,A,R,S' history \n    \
+      \        \t\t\tself.agent.learn(20) # Each time we store a new history, we perform\
+      \ a training on random data\n            \t\t\tself.environment._state = new_state\n\
+      \            \t\t\tscore = reward\n            \t\t\tif new_state[2] == 1:\n\
+      \            \t\t\t\tdone = True\n            \t\tprint(' Episode:{} Score:{}'\
+      \ .format(episode, score))\n            \t'''\t\n        \tself.train_flag =\
+      \ False\n        \tself.done = True\n        \tprint('Tranining done')\n\t\n\
+      \          \n        \n        \t\n        \t\n        \t         \n       \
+      \  ## random decision at first (choose threshhold)\n            \n        '''\n\
+      \            for i in range(0,np.size(input_items,0)):\n            \t#Energy\
+      \ detected during time slot, mark as occupied \n            \tif (np.mean(abs(input_items[i][:]))>self.active_threshold):\n\
+      \            \t\tself.channels[i] = 1\n            for j in range (np.size(self.channels)):\
+      \ self.channels[j] = np.abs(self.channels[j]-1)#flip ones and zeros\n      \
+      \      print(self.channels,'    ', datetime.now())   \n            #when training\
+      \ is done, make a decision\n            if self.done == True:\n            \t\
+      state = [self.channels.astype(np.float32), self.dq_env.one_hot(self.channel_decision,\
+      \ self.number_of_channels), 0]\n            \tself.channel_decision = self.agent_dq.choose_action(state,\
+      \ 0)# epsilon = 0 only expoiltation wehn not training\n            \tself.total_count\
+      \ += 1\n            \tself.total_ratio = (self.total_error)/self.total_count\n\
+      \            \tprint('CH: ',self.channels)\n            \ttemp = np.zeros(np.size(self.channels))\n\
+      \            \ttemp[self.channel_decision]=1\n            \tprint('DC: ',temp)\n\
+      \            \tprint('count: ', self.total_count, ' Errors: ', self.total_error,\
+      \ ' ratio: ',self.total_ratio)\n         \t\n            \tif self.channels[self.channel_decision]\
+      \ == 0:\n            \t\tself.collision += 1             \n            self.grid\
+      \ = self.make_grid(self.grid,(self.channels))\n            self.last_datetime\
+      \ = datetime.now()\n            self.channels = np.zeros(self.number_of_channels)\n\
+      \            #print(self.grid)\n            \n            self.grid_flag +=\
+      \ 1\n        output_items[0][:]= self.channel_decision      \n        if self.collision\
+      \ == 1:\n        \tself.total_error += 1\n        \tself.collision = 0\n   \
+      \     \t#self.grid_flag = self.window_size+1\n        \t'''\n\n        \t\n\
+      \        '''#Full window sized grid\n        if (self.grid_flag == self.window_size+1):\
+      \ \n\t\t\n        \t#initialize DQN env\n        \tself.dq_env = self.DQEnv(self.number_of_channels,\
+      \ self.window_size, self.initial_channel, self.grid.T)\n\t\n\t\t# Run 200 episodes\n\
+      \        \tfor i in range(HISTORY_BUFFER_LEN):\n                    \n     \
+      \               self.dq_env.initialize()\n                    \n           \
+      \         state = self.dq_env.get_init_state()\n                    action =\
+      \ self.agent_dq.choose_action(state, self.epsilon)\n                    reward,\
+      \ new_state = self.dq_env.run(action)\n\t    \n                    self.agent_dq.insert_history(state,\
+      \ action, reward, new_state) # Insert state, action, reward, new state in history\
+      \ \n\t    \n                    # While it's not the end of the episode\n  \
+      \                  while new_state[2]==0 :\n                    \tstate = new_state\n\
+      \                    \taction = self.agent_dq.choose_action(state, self.epsilon)\n\
+      \                    \treward, new_state = self.dq_env.run(action)\n\t\t\n \
+      \                   \tself.agent_dq.insert_history(state, action, reward, new_state)\
+      \ # Insert state, action, reward, new state in history\n        \t\n       \
+      \ \tself.train_flag = True                      \t\n        \tprint('Replay\
+      \ buffer History populated')\n        \t                 \t \n\n        \t\n\
+      \        \t\n\n        if self.train_flag == True:\n\t        print('Training...')\n\
+      \        \tself.train_flag = False\n        \t\n        \tfor i in range(self.nb_trainings):\n\
+      \        \t\tself.dq_env.initialize()\n        \t\tstate = self.dq_env.get_init_state()\n\
+      \    \n        \t\taction = self.agent_dq.choose_action(state, self.epsilon)\n\
+      \        \t\treward, new_state = self.dq_env.run(action)\n        \t\tself.agent_dq.insert_history(state,\
+      \ action, reward, new_state) # Insert state, action, reward, new state in history\
+      \ \n        \t\tself.agent_dq.learn(64) # Each time we store a new history,\
+      \ we perform a training on random data\n    \n        \t\t# While it's not the\
+      \ end of the episode\n        \t\twhile new_state[2]==0 :\n        \t\t\tstate\
+      \ = new_state\n        \t\t\taction = self.agent_dq.choose_action(state, self.epsilon)\n\
+      \        \t\t\treward, new_state = self.dq_env.run(action)\n        \t\t\tself.agent_dq.insert_history(state,\
+      \ action, reward, new_state) # Insert state, action, reward, new state in history\
+      \ \n        \t\t\tself.agent_dq.learn(64) # Each time we store a new history,\
+      \ we perform a training on random data\n    \n        \t\tself.loss.append(tf.reduce_mean(self.agent_dq.loss).numpy())\
+      \ #Save the losses for future visualization\n        \t\t\t#Every 10 iterations\
+      \ we copy the parameters of the online DQN to the offline DQN\n        \t\t\
+      if (i+1)%10 == 0:\n        \t\t\tself.agent_dq.copy_parameters()\n        \t\
+      \t\tprint((i+1), einitial_stnd=', ')\n        \tself.done = True\n        \t\
+      #plt.semilogy(np.arange(len(self.loss)), self.loss)\n        \t#plt.show()\n\
+      \        \tself.evaluate_dq_agent(self.agent_dq , self.dq_env.grid)\n      \
+      \  '''\n        return len(output_items[0])\n        \n\n    class transmit_wait():\n\
+      \n    \tdef __init__(self, sensed = 0 , window_size = DEFAULT_WINDOW_SIZE, history\
+      \ = 0 ):\n    \t\tself._action_spec = Discrete(11) #transmit or not {0,0.1,...,0.9,1}\n\
+      \    \t\tself._observation_spec =  array_spec.BoundedArraySpec(shape=(window_size,),\
+      \ dtype=np.int32, minimum=0, maximum=1, name='observation')#occupied or not\
+      \ {0,1}\n    \t\t\n    \t\tself.initial_state = history #no transmision #################\n\
+      \    \t\tself.prv_state = np.zeros(window_size)##slide by 1\n    \t\tself._state\
+      \ = history\n    \t\tself.window_size = window_size\n    \t\tself.sensed = sensed##################\n\
+      \    \t\t\n    \t\tself.episode_length = EPISODE_LENGTH\n    \t\tself.reward\
+      \ = 0\n    \t\t\n    \tdef action_spec(self):\n    \t\treturn self._action_spec\n\
+      \n    \tdef observation_spec(self):\n    \t\treturn self._observation_spec\n\
+      \n    \tdef reset(self):\n    \t\tself._state = [self.initial_state , self.sensed\
+      \ , 0]\n    \t\tself._episode_ended = False\n    \t\tself.episode_length = EPISODE_LENGTH\n\
+      \    \t\tself.reward = 0\n    \t\treturn (self.reward , self._state , 0)\n\n\
+      \    \tdef step(self, action,transmit_prob):\n    \t\thistory = self._state\n\
+      \    \t\t#prv_history = self.prv_state\n    \t\t\n    \t\tif transmit_prob >\
+      \ action:\n    \t\t\ttransmit = 1\n    \t\telse:\n    \t\t\ttransmit = 0  \n\
+      \n    \t\tif history[-1] == 1 and transmit == 1: #collision\n    \t\t\tself.reward\
+      \ = self.reward-2\n    \t\telif history[-1] == 0 and transmit == 1: #clean transmit\n\
+      \    \t\t\tself.reward = self.reward+3\n    \t\telif history[-1] == 1 and transmit\
+      \ == 0: #avoided collision\n    \t\t\tself.reward = self.reward+1\n    \t\t\
+      elif history[-1] == 0 and transmit == 0: #wasted slot\n    \t\t\tself.reward\
+      \ = self.reward-1\t\n    \t\treward = self.reward\t#comulative reward\n    \t\
+      \tself.reward = 0\n    \t\treturn(reward)\n\n\t\n\t\t\t    \t\t\t\n    class\
+      \ DQN_agent():\n    \tdef __init__(self, learning_rate, gamma, window_size):\n\
+      \    \t\tself.nb_actions = 11 #on off\n    \t\tself.window_size = window_size\n\
+      \    \t\tself.gamma = gamma\n    \t\tself.learning_rate = learning_rate\n  \
+      \  \t\t\n    \t\tself.history_length = HISTORY_BUFFER_LEN\n    \t\tself.history\
+      \ = [[]for i in range(self.history_length)]\n    \t\tself.history_idx = 0\n\
+      \    \t\t\n    \t\t#Create and initialize the online DQN\n    \t\tself.DQN_online\
+      \ = tf.keras.models.Sequential([Dense(self.window_size, activation='relu'),\
+      \ Dense(self.nb_actions, activation='softplus') #Outputs positive values \n\
+      \    \t\t])\n    \t\tself.DQN_online.build(input_shape=(None, self.window_size))\
+      \ #Build the model to create the weights\n    \t\t\n    \t\t#Create and initialize\
+      \ the offline DQN\n    \t\tself.DQN_offline = tf.keras.models.Sequential([Dense(self.window_size,\
+      \ activation='relu'), Dense(self.nb_actions, activation='softplus') #Outputs\
+      \ positive values\n    \t\t])\n    \t\tself.DQN_offline.build(input_shape=(None,\
+      \ self.window_size)) #Build the model to create the weights\n    \t\t\n    \t\
+      \tself.copy_parameters() #Copy the weights of the online network to the offline\
+      \ network\n    \t\t\n    \t\tself.loss_func = tf.keras.losses.MSE\n    \t\t\
+      self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)\n        \n  \
+      \      \n    \tdef choose_action(self, state, epsilon):\n    \t\t\"\"\"Implements\
+      \ an epsilon-greedy policy\"\"\"\n    \t\thistory = state\n    \t\t# Explore\
+      \ ?\n    \t\tif np.random.uniform(size=1) < epsilon :\n    \t\t\taction =  np.random.randint(11)\
+      \ ####### Transmit with probability epsilon\n    \t\t\tprint('random action\
+      \ chosen:    ', action)\n\n    \t\t#Exploite - Choose the current best action\n\
+      \    \t\telse:    \n    \t\t\tDQN_input = tf.concat(history, axis=0)[tf.newaxis,\
+      \ :] #Create a state vector, which is the DQN input. Shape : [1, 1]\n    \t\t\
+      \toutputs = self.DQN_online(DQN_input).numpy() #Get the predicted Q values corresponding\
+      \ to the 2 actions\n    \t\t\taction = np.argmax(outputs) #Take the action that\
+      \ has the highest predicted Q value (0, 1)\n    \t\t\tprint('non random action\
+      \ chosen:    ', action)\t\t\t\n    \t\treturn action\n    \n    \tdef learn(self,\
+      \ batch_size):\n    \t\t\"\"\"Sample experiences from the history and performs\
+      \ SGD\"\"\"\n    \t\t\n    \t\t# Samples random experiences from the history\n\
+      \    \t\tidx = np.random.choice(range(self.history_length), batch_size, replace=False)\
+      \ # Create random indexes \n    \t\trdm_exp =  [self.history[i] for i in idx]\
+      \ # Take experiences corresponding to the random indexes\n    \t\t\n    \t\t\
+      # Each experience is written in this format : [state_vec, end, action, reward,\
+      \ n_state_vec, n_end] (see insert_history method)\n    \t\t\n    \t\t# Create\
+      \ 6 batches : states_vec, end_boolean, actions, rewards, new states_vec, new_end_boolean\n\
+      \    \t\tstates_vec = np.array([rdm_exp[i][0] for i in range(batch_size)]) #\
+      \ Shape : [Bs, 2*self.nb_ch]\n    \t\t#end = np.array([rdm_exp[i][1] for i in\
+      \ range(batch_size)]) # Shape : [Bs]\n    \t\tactions = np.array([rdm_exp[i][1]\
+      \ for i in range(batch_size)]) # Shape : [BS]\n    \t\trewards = np.array([rdm_exp[i][2]\
+      \ for i in range(batch_size)]) # Shape : [BS]\n    \t\tn_states_vec = np.array([rdm_exp[i][3]\
+      \ for i in range(batch_size)]) # Shape : [Bs, 2*self.nb_ch]\n    \t\t#n_end\
+      \ = np.array([rdm_exp[i][5] for i in range(batch_size)]) # Shape : [BS]\n  \
+      \  \t\t\n    \t\t#Compute the best q_value for the new states\n    \t\tmax_n_q_values\
+      \ = tf.reduce_max(self.DQN_offline(n_states_vec), axis=1).numpy()\n\n    \t\t\
+      with tf.GradientTape() as tape:\n    \t\t\t#Forward pass through the online\
+      \ network to predict the q_values\n    \t\t\tpred_q_values = self.DQN_online(states_vec)\n\
+      \    \t\t\t\n    \t\t\t# Compute targets\n    \t\t\ttargets = pred_q_values.numpy()\n\
+      \    \t\t\ttargets[np.arange(targets.shape[0]), actions]= rewards +   self.gamma\
+      \ * max_n_q_values\n    \t\t\t\n    \t\t\t# Evaluate the loss\n    \t\t\tself.loss\
+      \ = self.loss_func(pred_q_values, targets)\n        \n    \t\t# Compute gradients\
+      \ and perform the gradient descent\n    \t\tgradients = tape.gradient(self.loss,\
+      \ self.DQN_online.trainable_weights)\n    \t\tself.optimizer.apply_gradients(zip(gradients,\
+      \ self.DQN_online.trainable_weights))  \n    \n    \tdef insert_history(self,\
+      \ state, action, reward, n_state):\n    \t\t\"\"\"Insert experience in history\"\
+      \"\"\n        \n    \t\t#sensed_ch, curr_ch, end = state\n    \t\thistory =\
+      \ state\n    \t\tstate_vec = np.array(history)# Create the state vector for\
+      \ the state\n        \n    \t\tn_history = n_state\n    \t\tn_state_vec = np.array(n_history)\
+      \ # Create the state vector for the new state\n\n    \t\tself.history[self.history_idx]\
+      \ = [state_vec, action, reward, n_state_vec] # Insert everything in the history\n\
+      \        \n    \t\tself.history_idx = (self.history_idx+1)%self.history_length\
+      \ # Move the history_idx by one\n    \n    \tdef copy_parameters(self):\n  \
+      \  \t\t\"\"\"Copy the parameters of the online network to the offline network\"\
+      \"\"\n\n    \t\tweights = self.DQN_online.get_weights()\n    \t\tself.DQN_offline.set_weights(weights)\t\
+      \t\t\n''' \n    class DQEnv():\n    \tdef __init__(self, nb_channels = 7, nb_states=5,\
+      \ initial_state = 0 , grid = []):\n        \n\t    \tif (nb_channels+1)%2!=0:\n\
+      \t    \t\tprint('/!\\ Please enter an even number of channels')\n          \
+      \  \n\t    \tself.nb_ch = nb_channels\n\t    \tself.nb_states = nb_states\n\
+      \        \n\t    \tself.grid = grid\n\t    \tprint ('env grid:')\n\t    \tprint(self.grid)\n\
+      \t    \tself.init_state = [int(initial_state), int(self.nb_states-1)]\n\t  \
+      \  \tself.ch_state = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\
+      \t    \tself.sent_mess = 0\n        \n\t    \tprint('This environment has '\
+      \ + str(self.nb_ch) +' different channels')\n        \n    \tdef run(self, action):\n\
+      \        \n\t    \tself.sent_mess += 1\n        \n\t    \tself.ch_state  = (self.ch_state\
+      \ + 1)%self.nb_states\n        \n\t    \tself.curr_ch = action\n\t    \t\n\t\
+      \    \treward = np.abs(self.grid[self.curr_ch, self.ch_state])\n        \n\t\
+      \    \tif self.sent_mess != self.nb_states: \n\t    \t\tend = 0\n\t    \telse\
+      \ :\n\t    \t\tend = 1\n        \n\t    \treturn(reward, [self.grid[:, self.ch_state],\
+      \ self.one_hot(self.curr_ch, self.nb_ch), end])\n    \n    \tdef get_init_state(self):\n\
+      \t    \treturn [self.grid[:, self.init_state[1]], self.one_hot(self.init_state[0],\
+      \ self.nb_ch), 0]\n    \n    \tdef initialize(self):\n\t    \tself.ch_state\
+      \ = self.init_state[1]\n\t    \tself.curr_ch = self.init_state[0]\n\t    \t\
+      self.sent_mess = 0\n        \n    \tdef one_hot(self, index, depth):\n\t   \
+      \ \toh = np.zeros(depth, dtype=np.float32)\n\t    \toh[index] = 1\n\t    \t\
+      return oh\n    \n    \n    class DQAgent():\n    \tdef __init__(self, nb_channels,\
+      \ learning_rate, gamma):\n    \t\tself.nb_ch = nb_channels\n    \t\tself.nb_actions\
+      \ = nb_channels\n    \t\tself.gamma = gamma\n    \t\tself.learning_rate = learning_rate\n\
+      \    \t\t\n    \t\tself.history_length = HISTORY_BUFFER_LEN\n    \t\tself.history\
+      \ = [[]for i in range(self.history_length)]\n    \t\tself.history_idx = 0\n\
+      \    \t\t\n    \t\t#Create and initialize the online DQN\n    \t\tself.DQN_online\
+      \ = tf.keras.models.Sequential([Dense(2*self.nb_ch, activation='relu'), Dense(self.nb_actions,\
+      \ activation='softplus') #Outputs positive values \n    \t\t])\n    \t\tself.DQN_online.build(input_shape=(None,\
+      \ self.nb_ch*2)) #Build the model to create the weights\n    \t\t\n    \t\t\
+      #Create and initialize the offline DQN\n    \t\tself.DQN_offline = tf.keras.models.Sequential([Dense(2*self.nb_ch,\
+      \ activation='relu'), Dense(self.nb_actions, activation='softplus') #Outputs\
+      \ positive values\n    \t\t])\n    \t\tself.DQN_offline.build(input_shape=(None,\
+      \ self.nb_ch*2)) #Build the model to create the weights\n    \t\t\n    \t\t\
+      self.copy_parameters() #Copy the weights of the online network to the offline\
+      \ network\n    \t\t\n    \t\tself.loss_func = tf.keras.losses.MSE\n    \t\t\
+      self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)\n        \n  \
+      \      \n    \tdef choose_action(self, state, epsilon):\n    \t\t\"\"\"Implements\
+      \ an epsilon-greedy policy\"\"\"\n    \t\tsensed_ch, curr_ch, end = state\n\
+      \    \t\t# Explore ?\n    \t\tif np.random.uniform(size=1) < epsilon :\n   \
+      \ \t\t\taction =  np.random.randint(low = 0, high = np.size(sensed_ch)) #######\
+      \ Take one action randomly {0, 1, 2, 3, 4, 5, 6} with probability epsilon\n\
+      \    \t\t\t\n        \n    \t\t#Choose the best action\n    \t\telse:    \n\
+      \    \t\t\t#sensed_ch, curr_ch, end = state #Decomposes the state\n\n    \t\t\
+      \tDQN_input = tf.concat([sensed_ch, curr_ch], axis=0)[tf.newaxis, :] #Create\
+      \ a state vector, which is the DQN input. Shape : [1, 2*self.nb_ch]\n    \t\t\
+      \toutputs = self.DQN_online(DQN_input).numpy() #Get the predicted Q values corresponding\
+      \ to the 3 actions\n    \t\t\taction = np.argmax(outputs)#-1 #Take the action\
+      \ that has the highest predicted Q value (0, 1, 2, 3, 4, 5, 6)\t\t\t\n    \t\
+      \t\t#print(outputs)\n    \t\treturn action\n    \n    \tdef learn(self, batch_size):\n\
+      \    \t\t\"\"\"Sample experiences from the history and performs SGD\"\"\"\n\
+      \    \t\t\n    \t\t# Samples random experiences from the history\n    \t\tidx\
+      \ = np.random.choice(range(self.history_length), batch_size, replace=False)\
+      \ # Create random indexes \n    \t\trdm_exp =  [self.history[i] for i in idx]\
+      \ # Take experiences corresponding to the random indexes\n    \t\t\n    \t\t\
+      # Each experience is written in this format : [state_vec, end, action, reward,\
+      \ n_state_vec, n_end] (see insert_history method)\n    \t\t\n    \t\t# Create\
+      \ 6 batches : states_vec, end_boolean, actions, rewards, new states_vec, new_end_boolean\n\
+      \    \t\tstates_vec = np.array([rdm_exp[i][0] for i in range(batch_size)]) #\
+      \ Shape : [Bs, 2*self.nb_ch]\n    \t\tend = np.array([rdm_exp[i][1] for i in\
+      \ range(batch_size)]) # Shape : [Bs]\n    \t\tactions = np.array([rdm_exp[i][2]\
+      \ for i in range(batch_size)]) # Shape : [BS]\n    \t\trewards = np.array([rdm_exp[i][3]\
+      \ for i in range(batch_size)]) # Shape : [BS]\n    \t\tn_states_vec = np.array([rdm_exp[i][4]\
+      \ for i in range(batch_size)]) # Shape : [Bs, 2*self.nb_ch]\n    \t\tn_end =\
+      \ np.array([rdm_exp[i][5] for i in range(batch_size)]) # Shape : [BS]\n    \t\
+      \t\n    \t\t#Compute the best q_value for the new states\n    \t\tmax_n_q_values\
+      \ = tf.reduce_max(self.DQN_offline(n_states_vec), axis=1).numpy()\n\n    \t\t\
+      with tf.GradientTape() as tape:\n    \t\t\t#Forward pass through the online\
+      \ network to predict the q_values\n    \t\t\tpred_q_values = self.DQN_online(states_vec)\n\
+      \    \t\t\t\n    \t\t\t# Compute targets\n    \t\t\ttargets = pred_q_values.numpy()\n\
+      \    \t\t\ttargets[np.arange(targets.shape[0]), actions]= rewards + (1-n_end)\
+      \ * self.gamma * max_n_q_values\n    \t\t\t\n    \t\t\t# Evaluate the loss\n\
+      \    \t\t\tself.loss = self.loss_func(pred_q_values, targets)\n        \n  \
+      \  \t\t# Compute gradients and perform the gradient descent\n    \t\tgradients\
+      \ = tape.gradient(self.loss, self.DQN_online.trainable_weights)\n    \t\tself.optimizer.apply_gradients(zip(gradients,\
+      \ self.DQN_online.trainable_weights))  \n    \n    \tdef insert_history(self,\
+      \ state, action, reward, n_state):\n    \t\t\"\"\"Insert experience in history\"\
+      \"\"\n        \n    \t\tsensed_ch, curr_ch, end = state\n    \t\tstate_vec =\
+      \ np.concatenate([sensed_ch, curr_ch], axis=0) # Create the state vector for\
+      \ the state\n        \n    \t\tn_sensed_ch, n_curr_ch, n_end = n_state\n   \
+      \ \t\tn_state_vec = np.concatenate([n_sensed_ch, n_curr_ch], axis=0) # Create\
+      \ the state vector for the new state\n\n    \t\tself.history[self.history_idx]\
+      \ = [state_vec, end, action, reward, n_state_vec, n_end] # Insert everything\
+      \ in the history\n        \n    \t\tself.history_idx = (self.history_idx+1)%self.history_length\
+      \ # Move the history_idx by one\n    \n    \tdef copy_parameters(self):\n  \
+      \  \t\t\"\"\"Copy the parameters of the online network to the offline network\"\
+      \"\"\n\n    \t\tweights = self.DQN_online.get_weights()\n    \t\tself.DQN_offline.set_weights(weights)\n\
+      \n\t\t\n\n    def make_grid(self,grid,channels):\n        grid = np.append(grid,\
+      \ channels).reshape(self.window_size+1,7)\n        grid = np.delete(grid, 0,\
+      \ 0)\n        grid = grid.reshape(self.window_size,self.number_of_channels)\n\
+      \        return grid.astype(np.float32)\n  \n    def evaluate_dq_agent(self,\
+      \ agent, grid):\n\n        action_history=[]\n        tot_reward = 0\n    \n\
+      \        self.dq_env.initialize()\n        first_state = self.dq_env.get_init_state()\n\
+      \        action = agent.choose_action(first_state, epsilon = 0)\n        action_history.append(action)\n\
+      \        reward, new_state = self.dq_env.run(action)\n        tot_reward +=\
+      \ reward\n    \n        for j in range(grid.shape[1]-1):\n            state\
+      \ = new_state\n            action = agent.choose_action(state, epsilon = 0)\n\
+      \            action_history.append(action)\n            reward, new_state =\
+      \ self.dq_env.run(action)\n            tot_reward += reward\n            \n\
+      \        choosen_channels = [(grid.shape[0]-1)/2]\n        for i in range(len(action_history)):\n\
+      \        \tchoosen_channels.append((choosen_channels[i]+action_history[i])%grid.shape[0])\n\
+      \        choosen_channels = choosen_channels[1:]\n        #plt.imshow(np.flip(grid,\
+      \ axis=0), origin=\"lower\", cmap='gray', vmin=0, vmax=1)\n        #for i in\
+      \ range(len(choosen_channels)):\n        #\tplt.scatter(i, grid.shape[0]-1-choosen_channels[i],\
+      \ color='r')\n        #plt.show()\n        #print(str(int(tot_reward))+'/'+str(grid.shape[1])+'\
+      \ packets have been transmitted')\n        return tot_reward\n        '''  \n"
+    active_threshold: '0.9'
+    affinity: ''
+    alias: ''
+    comment: ''
+    epsilon: '0.5'
+    gamma: '0.5'
+    initial_channel: '0'
+    learning_rate: '0.01'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_GPU: '1'
+    number_of_channels: '1'
+    seed: '2'
+    slot_time: '1'
+    window_size: '16'
+  states:
+    _io_cache: ('RL Transmit agent', 'blk', [('number_of_channels', '7'), ('seed',
+      '0'), ('num_GPU', '0.0'), ('active_threshold', '0.9'), ('slot_time', '1'), ('window_size',
+      '5'), ('initial_channel', '0'), ('gamma', '1'), ('learning_rate', '0.01'), ('epsilon',
+      '1')], [('0', 'complex', 1), ('msg_in', 'message', 1)], [('0', 'short', 1),
+      ('msg_out', 'message', 1)], 'Embedded Python Block example - a simple multiply
+      const', ['active_threshold', 'epsilon', 'gamma', 'initial_channel', 'learning_rate',
+      'number_of_channels', 'slot_time', 'window_size'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [962, 151]
+    rotation: 0
+    state: enabled
+- name: epy_block_4_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
+      from gnuradio import gr\nimport time\nfrom datetime import datetime, timedelta\n\
+      import pmt\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \"\"\"Embedded Python Block example - a simple\
+      \ multiply const\"\"\"\n\n    def __init__(self):  # only default arguments\
+      \ here\n        \"\"\"arguments to this function show up as parameters in GRC\"\
+      \"\"\n        gr.sync_block.__init__(\n            self,\n            name='transmit\
+      \ in Channel',   # will show up in GRC\n            in_sig=[np.complex64],\n\
+      \            out_sig=[np.complex64]\n        )\n        \n        self.message_port_register_in(pmt.intern('msg_in'))\n\
+      \        self.set_msg_handler(pmt.intern('msg_in'), self.handle_msg)\n \n  \
+      \  \n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        self.last_datetime\
+      \ = datetime.now()\n        self.index = 0\n\n    def work(self, input_items,\
+      \ output_items):\n    \tif self.index  == 1:\n    \t\toutput_items[0][:] = input_items[0][:]\n\
+      \    \telse:\n    \t\toutput_items[0][:] = 0\n    \treturn len(output_items[0])\n\
+      \    \t\n    \t\n    def handle_msg(self, msg):\n    \tif pmt.to_python(msg)\
+      \ == '1':\n    \t\tself.index  = 1\n    \telse:\n    \t\tself.index  = 0\n\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('transmit in Channel', 'blk', [], [('0', 'complex', 1), ('msg_in',
+      'message', 1)], [('0', 'complex', 1)], 'Embedded Python Block example - a simple
+      multiply const', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1587, 220]
+    rotation: 0
+    state: true
+- name: qtgui_freq_sink_x_0_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '10.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark blue"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'False'
+    fc: '0'
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: CH1
+    label10: ''''''
+    label2: CH2
+    label3: CH3
+    label4: CH4
+    label5: CH5
+    label6: CH6
+    label7: CH7
+    label8: '''CHOISE'''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '2'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: firdes.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1914, 209]
+    rotation: 0
+    state: true
+- name: qtgui_number_sink_0_0
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'False'
+    avg: '0'
+    color1: ("black", "black")
+    color10: ("black", "black")
+    color2: ("black", "black")
+    color3: ("black", "black")
+    color4: ("black", "black")
+    color5: ("black", "black")
+    color6: ("black", "black")
+    color7: ("black", "black")
+    color8: ("black", "black")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '1'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    max: '10'
+    min: '0'
+    name: '""'
+    nconnections: '1'
+    type: short
+    unit1: ''
+    unit10: ''
+    unit2: ''
+    unit3: ''
+    unit4: ''
+    unit5: ''
+    unit6: ''
+    unit7: ''
+    unit8: ''
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1607, 344]
+    rotation: 0
+    state: true
+- name: qtgui_waterfall_sink_x_0_0_0
+  id: qtgui_waterfall_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '0.5'
+    alpha10: '1.0'
+    alpha2: '0.5'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '0'
+    color10: '0'
+    color2: '6'
+    color3: '0'
+    color4: '0'
+    color5: '0'
+    color6: '0'
+    color7: '0'
+    color8: '0'
+    color9: '0'
+    comment: ''
+    fc: '0'
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'True'
+    gui_hint: ''
+    int_max: '1'
+    int_min: '-200'
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '2'
+    showports: 'False'
+    type: complex
+    update_time: '0.10'
+    wintype: firdes.WIN_BLACKMAN_hARRIS
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1921, 483]
+    rotation: 0
+    state: true
+
+connections:
+- [analog_sig_source_x_0, '0', epy_block_1_1, '0']
+- [analog_sig_source_x_0_1_0, '0', epy_block_4_0, '0']
+- [channels_channel_model_0, '0', epy_block_3_0_0_0_0_0_0, '0']
+- [channels_channel_model_0, '0', qtgui_freq_sink_x_0_0, '1']
+- [channels_channel_model_0, '0', qtgui_waterfall_sink_x_0_0_0, '1']
+- [epy_block_1_1, '0', channels_channel_model_0, '0']
+- [epy_block_3_0_0_0_0_0_0, '0', qtgui_number_sink_0_0, '0']
+- [epy_block_3_0_0_0_0_0_0, msg_out, epy_block_4_0, msg_in]
+- [epy_block_4_0, '0', qtgui_freq_sink_x_0_0, '0']
+- [epy_block_4_0, '0', qtgui_waterfall_sink_x_0_0_0, '0']
+
+metadata:
+  file_format: 1
