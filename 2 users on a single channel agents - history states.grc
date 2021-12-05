@@ -88,6 +88,25 @@ blocks:
     coordinate: [1289, 120]
     rotation: 0
     state: true
+- name: blocks_delay_0
+  id: blocks_delay
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    delay: '32000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1415, 30]
+    rotation: 0
+    state: true
 - name: channels_channel_model_0
   id: channels_channel_model
   parameters:
@@ -133,8 +152,8 @@ blocks:
       \ = interval\n        self.active = [False]\n        self.channels = [0]#cahnge\
       \ to size of inputs\n        for j in range(0,len(self.channels)): #cahnge to\
       \ synchronus\n        \tself.channels[j] = datetime.now()\n        \tself.mus\
-      \ = np.append(self.mus, 1+int(np.random.exponential(scale = j)))\n        print\
-      \ (self.mus)        \t\n        \n    def work(self, input_items, output_items):\n\
+      \ = np.append(self.mus, 2+int(np.random.exponential(scale = j+1)))\n       \
+      \ print (self.mus)        \t\n        \n    def work(self, input_items, output_items):\n\
       \        \"\"\"example: multiply with constant\"\"\"\n        for i in range(0,np.size(input_items,0)):\n\
       \        \t\n        \tif datetime.now() - self.channels[i] > timedelta(days=0,\
       \ seconds=self.mus[i], microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):\
@@ -194,7 +213,7 @@ blocks:
       \n\nfrom matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\nfrom matplotlib.figure\
       \ import Figure\nfrom PyQt5 import QtCore #conda install pyqt\nfrom PyQt5 import\
       \ QtWidgets\n\nimport abc\nfrom tf_agents.networks import q_network\nfrom tf_agents.agents.dqn\
-      \ import dqn_agent\n\n\nHISTORY_BUFFER_LEN = 40\nDEFAULT_WINDOW_SIZE = 32\n\
+      \ import dqn_agent\n\n\nHISTORY_BUFFER_LEN = 200\nDEFAULT_WINDOW_SIZE = 32\n\
       EPISODE_LENGTH = 20\nNUMBER_OF_EPISODES = 200\n\nclass blk(gr.sync_block): \
       \ # other base classes are basic_block, decim_block, interp_block\n    \"\"\"\
       Embedded Python Block example - a simple multiply const\"\"\"\n\n    def __init__(self,number_of_channels=7,seed\
@@ -283,10 +302,11 @@ blocks:
       \ history\n            \t\t\tstate = self.environment._state\n            \t\
       \t\tprint('state:', state)\n    \t\t\t\t\n            \t\t\t#transmit with probability\
       \ <action>\n            \t\t\tprv_action = self.agent.choose_action(self.environment.prv_state,\
-      \ self.epsilon) #######ADD GLIE\n            \t\t\ttransmit_prob = np.random.randint(11)\n\
-      \            \t\t\tif transmit_prob > prv_action:\n            \t\t\t\tself.channel_decision\
-      \ = 1\n            \t\t\telse:\n            \t\t\t\tself.channel_decision =\
-      \ 0\n    \t\t\t\t\n            \t\t\treward = self.environment.step(prv_action,\
+      \ self.epsilon) \n            \t\t\tself.epsilon = 0.99*self.epsilon# GLIE\n\
+      \            \t\t\ttransmit_prob = np.random.randint(11)\n            \t\t\t\
+      if transmit_prob > prv_action:\n            \t\t\t\tself.channel_decision =\
+      \ 1\n            \t\t\telse:\n            \t\t\t\tself.channel_decision = 0\n\
+      \    \t\t\t\t\n            \t\t\treward = self.environment.step(prv_action,\
       \ transmit_prob)\n\n            \t\t\tself.agent.insert_history(self.environment.prv_state,\
       \ prv_action, reward, state) # Insert state, action, reward, new state in history\n\
       \            \t\t\tself.hist += 1\n            \t\t\tprint('insert history ',\
@@ -577,7 +597,7 @@ blocks:
     number_of_channels: '1'
     seed: '2'
     slot_time: '1'
-    window_size: '16'
+    window_size: '8'
   states:
     _io_cache: ('RL Transmit agent', 'blk', [('number_of_channels', '7'), ('seed',
       '0'), ('num_GPU', '0.0'), ('active_threshold', '0.9'), ('slot_time', '1'), ('window_size',
@@ -707,7 +727,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1914, 209]
+    coordinate: [1778, 29]
     rotation: 0
     state: true
 - name: qtgui_number_sink_0_0
@@ -838,9 +858,10 @@ blocks:
 connections:
 - [analog_sig_source_x_0, '0', epy_block_1_1, '0']
 - [analog_sig_source_x_0_1_0, '0', epy_block_4_0, '0']
+- [blocks_delay_0, '0', qtgui_freq_sink_x_0_0, '1']
+- [blocks_delay_0, '0', qtgui_waterfall_sink_x_0_0_0, '1']
+- [channels_channel_model_0, '0', blocks_delay_0, '0']
 - [channels_channel_model_0, '0', epy_block_3_0_0_0_0_0_0, '0']
-- [channels_channel_model_0, '0', qtgui_freq_sink_x_0_0, '1']
-- [channels_channel_model_0, '0', qtgui_waterfall_sink_x_0_0_0, '1']
 - [epy_block_1_1, '0', channels_channel_model_0, '0']
 - [epy_block_3_0_0_0_0_0_0, '0', qtgui_number_sink_0_0, '0']
 - [epy_block_3_0_0_0_0_0_0, msg_out, epy_block_4_0, msg_in]
